@@ -162,19 +162,6 @@ npm test
 npm run test:e2e
 ```
 
-## 📚 Documentation
-
-Comprehensive documentation is available in the `docs/` folder:
-
-- [Architecture](./docs/architecture.md) - App architecture and design patterns
-- [Contributing Guide](./docs/contributing.md) - Development workflow
-- [Component Guidelines](./docs/components.md) - Component patterns
-- [State Management](./docs/state-management.md) - State handling
-- [API Integration](./docs/api-integration.md) - Backend communication
-- [Wallet Integration](./docs/wallet-integration.md) - Stellar wallet setup
-- [Styling Guide](./docs/styling.md) - NativeWind usage
-- [Navigation](./docs/navigation.md) - Expo Router patterns
-
 ## 🎨 Design System
 
 The app uses a custom design system built with NativeWind (Tailwind CSS):
