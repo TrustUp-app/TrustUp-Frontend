@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -6,163 +6,26 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import { useCreateAccount } from '../../hooks/auth/use-create-account';
 
 const CreateAccountScreen = ({ navigation }: any) => {
-  const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [walletAddress, setWalletAddress] = useState('');
-  const [username, setUsername] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const {
+    formState,
+    errors,
+    isSubmitting,
+    showSuccess,
+    handleWalletAddressChange,
+    handleUsernameChange,
+    handleDisplayNameChange,
+    handleTermsAcceptedChange,
+    pickImage,
+    createAccount,
+    isFormValid,
+  } = useCreateAccount();
 
-  const [errors, setErrors] = useState({
-    walletAddress: '',
-    username: '',
-    displayName: '',
-    profileImage: '',
-  });
-
-  const validateWalletAddress = (address: string) => {
-    // Stellar wallet addresses start with G and are 56 characters long
-    const stellarPattern = /^G[A-Z0-9]{55}$/;
-    return stellarPattern.test(address);
-  };
-
-  const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access camera roll is required!');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images' as any,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets && result.assets[0]) {
-      const imageUri = result.assets[0].uri;
-
-      try {
-        const response = await fetch(imageUri);
-        const blob = await response.blob();
-        const sizeInMB = blob.size / (1024 * 1024);
-
-        // Validate file size
-        if (sizeInMB > 2) {
-          setErrors({ ...errors, profileImage: 'File size must be less than 2MB' });
-          return;
-        }
-
-        // Validate file type using blob.type (more reliable in web)
-        const blobType = blob.type.toLowerCase();
-        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-
-        if (!validTypes.includes(blobType)) {
-          setErrors({ ...errors, profileImage: 'Only JPG, PNG, and WebP formats are allowed' });
-          return;
-        }
-
-        // All validations passed
-        setErrors({ ...errors, profileImage: '' });
-        setProfileImage(imageUri);
-      } catch (error) {
-        console.error('Error processing image:', error);
-        setErrors({ ...errors, profileImage: 'Error processing image' });
-      }
-    }
-  };
-
-  const handleWalletAddressChange = (text: string) => {
-    setWalletAddress(text);
-    if (text && !validateWalletAddress(text)) {
-      setErrors({ ...errors, walletAddress: 'Invalid Stellar wallet address format' });
-    } else {
-      setErrors({ ...errors, walletAddress: '' });
-    }
-  };
-
-  const handleUsernameChange = (text: string) => {
-    const cleanedText = text.replace(/[^a-zA-Z0-9_]/g, '');
-    setUsername(cleanedText);
-    if (cleanedText.length < 3) {
-      setErrors({ ...errors, username: 'Username must be at least 3 characters' });
-    } else {
-      setErrors({ ...errors, username: '' });
-    }
-  };
-
-  const handleDisplayNameChange = (text: string) => {
-    setDisplayName(text);
-    if (text.length < 2) {
-      setErrors({ ...errors, displayName: 'Display name must be at least 2 characters' });
-    } else {
-      setErrors({ ...errors, displayName: '' });
-    }
-  };
-
-  const isFormValid = () => {
-    // Profile image is optional, but if there's an error with uploaded image, block submission
-    const hasImageError = errors.profileImage !== '';
-
-    return (
-      walletAddress.trim() !== '' &&
-      validateWalletAddress(walletAddress) &&
-      username.length >= 3 &&
-      displayName.length >= 2 &&
-      termsAccepted &&
-      errors.walletAddress === '' &&
-      errors.username === '' &&
-      errors.displayName === '' &&
-      !hasImageError
-    );
-  };
-
-  const handleCreateAccount = () => {
-    if (isFormValid()) {
-      setIsSubmitting(true);
-
-      const accountData = {
-        profileImage,
-        walletAddress,
-        username,
-        displayName,
-        termsAccepted,
-      };
-
-      console.log('✅ Account Created Successfully:', accountData);
-
-      // Show success notification
-      setShowSuccess(true);
-
-      // Simulate account creation delay
-      setTimeout(() => {
-        setIsSubmitting(false);
-
-        Alert.alert(
-          '✅ Account Created!',
-          `Welcome, ${displayName}!\n\nYour account has been created successfully.\n\nUsername: @${username}\nWallet: ${walletAddress.substring(0, 10)}...`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setShowSuccess(false);
-                console.log('Account creation confirmed');
-              },
-            },
-          ]
-        );
-      }, 500);
-    }
-  };
+  const { profileImage, walletAddress, username, displayName, termsAccepted } = formState;
 
   return (
     <View className="flex-1 bg-[#F5F5F5]">
@@ -284,7 +147,7 @@ const CreateAccountScreen = ({ navigation }: any) => {
 
           {/* Terms & Conditions Checkbox */}
           <TouchableOpacity
-            onPress={() => setTermsAccepted(!termsAccepted)}
+            onPress={() => handleTermsAcceptedChange(!termsAccepted)}
             className="flex-row items-start mb-6"
             activeOpacity={0.7}
             accessibilityLabel="Accept terms and conditions"
@@ -303,7 +166,7 @@ const CreateAccountScreen = ({ navigation }: any) => {
 
           {/* Create Account Button */}
           <TouchableOpacity
-            onPress={handleCreateAccount}
+            onPress={createAccount}
             disabled={!isFormValid() || isSubmitting}
             className={`rounded-xl py-4 items-center flex-row justify-center ${
               isFormValid() && !isSubmitting ? 'bg-[#FF9C6E]' : 'bg-gray-300'
