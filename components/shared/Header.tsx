@@ -4,38 +4,27 @@ import { Ionicons } from '@expo/vector-icons';
 
 export const Header = () => {
   return (
-    <View className="bg-white px-6 pt-12 pb-4">
-      <View className="flex-row justify-between items-center">
+    <View className="bg-white px-6 pb-4 pt-12">
+      <View className="flex-row items-center justify-between">
         {/* Greetings */}
-        <Text className="text-xl font-semibold text-[#343434]">
-          Good evening, Josué
-        </Text>
+        <Text className="text-xl font-semibold text-[#343434]">Good evening, Josué</Text>
 
         {/* Right icon */}
         <View className="flex-row items-center gap-4">
           {/* Settings icon */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            className="w-10 h-10 items-center justify-center"
-          >
+          <TouchableOpacity activeOpacity={0.7} className="h-10 w-10 items-center justify-center">
             <Ionicons name="settings-outline" size={24} color="#343434" />
           </TouchableOpacity>
 
           {/* Notifications icon */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            className="w-10 h-10 items-center justify-center"
-          >
+          <TouchableOpacity activeOpacity={0.7} className="h-10 w-10 items-center justify-center">
             <Ionicons name="notifications-outline" size={24} color="#343434" />
           </TouchableOpacity>
 
           {/* Avatar */}
           <TouchableOpacity activeOpacity={0.7}>
-            <View className="w-10 h-10 rounded-full bg-gray-300 overflow-hidden">
-              <Image
-                source={{ uri: 'https://via.placeholder.com/40' }}
-                className="w-full h-full"
-              />
+            <View className="h-10 w-10 overflow-hidden rounded-full bg-gray-300">
+              <Image source={{ uri: 'https://via.placeholder.com/40' }} className="h-full w-full" />
             </View>
           </TouchableOpacity>
         </View>
@@ -43,4 +32,3 @@ export const Header = () => {
     </View>
   );
 };
-

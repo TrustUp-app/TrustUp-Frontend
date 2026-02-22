@@ -28,13 +28,12 @@ export default function SignInScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
+      style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Logo Section */}
-        <View className="items-center mb-10">
+        <View className="mb-10 items-center">
           <View style={styles.logoContainer}>
             <Image source={require('../../assets/trustUpLogo.png')} style={styles.logo} />
           </View>
@@ -69,7 +68,11 @@ export default function SignInScreen() {
               secureTextEntry={secureText}
             />
             <TouchableOpacity onPress={() => setSecureText(!secureText)}>
-              {secureText ? <Eye stroke="#94a3b8" size={20} /> : <EyeOff stroke="#94a3b8" size={20} />}
+              {secureText ? (
+                <Eye stroke="#94a3b8" size={20} />
+              ) : (
+                <EyeOff stroke="#94a3b8" size={20} />
+              )}
             </TouchableOpacity>
           </View>
 
@@ -78,11 +81,10 @@ export default function SignInScreen() {
           </TouchableOpacity>
 
           {/* Sign In Button */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.signInBtn, !isValid && styles.disabledBtn]}
             disabled={!isValid}
-            onPress={handleSignIn}
-          >
+            onPress={handleSignIn}>
             <Text style={styles.signInBtnText}>Sign In</Text>
             <ArrowRight stroke="#fff" size={18} />
           </TouchableOpacity>
@@ -125,7 +127,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10 },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+      },
       android: { elevation: 5 },
     }),
   },
@@ -164,7 +171,12 @@ const styles = StyleSheet.create({
   },
   disabledBtn: { backgroundColor: '#cbd5e1', shadowOpacity: 0, elevation: 0 },
   signInBtnText: { color: '#fff', fontSize: 18, fontWeight: '700', marginRight: 8 },
-  dividerContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: 32, width: '100%' },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 32,
+    width: '100%',
+  },
   line: { flex: 1, height: 1, backgroundColor: '#e2e8f0' },
   orText: { marginHorizontal: 16, color: '#cbd5e1', fontSize: 12, fontWeight: '800' },
   walletBtn: {

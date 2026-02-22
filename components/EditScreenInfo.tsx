@@ -7,7 +7,7 @@ export const EditScreenInfo = ({ path }: { path: string }) => {
 
   return (
     <View>
-      <Text className='bg-slate-700 text-2xl'>Hola!</Text>
+      <Text className="bg-slate-700 text-2xl">Hola!</Text>
     </View>
   );
 };

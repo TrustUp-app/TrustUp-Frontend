@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  ScrollView,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCreateAccount } from '../../hooks/auth/use-create-account';
 
@@ -30,117 +23,113 @@ const CreateAccountScreen = ({ navigation }: any) => {
   return (
     <View className="flex-1 bg-[#F5F5F5]">
       {/* Header */}
-      <View className="bg-white px-6 pt-12 pb-4 flex-row items-center border-b border-gray-100">
+      <View className="flex-row items-center border-b border-gray-100 bg-white px-6 pb-4 pt-12">
         <TouchableOpacity
           onPress={() => navigation?.goBack()}
           className="mr-3"
-          accessibilityLabel="Go back"
-        >
+          accessibilityLabel="Go back">
           <Ionicons name="chevron-back" size={24} color="#343434" />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-[#343434]">Create Account</Text>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-6 pt-8 pb-8">
+        <View className="px-6 pb-8 pt-8">
           {/* Profile Picture Upload */}
-          <View className="items-center mb-6">
+          <View className="mb-6 items-center">
             <View className="relative">
-              <View className="w-32 h-32 bg-white rounded-full items-center justify-center shadow-sm">
+              <View className="h-32 w-32 items-center justify-center rounded-full bg-white shadow-sm">
                 {profileImage ? (
-                  <Image
-                    source={{ uri: profileImage }}
-                    className="w-32 h-32 rounded-full"
-                  />
+                  <Image source={{ uri: profileImage }} className="h-32 w-32 rounded-full" />
                 ) : (
                   <Ionicons name="person-outline" size={48} color="#8E8E8E" />
                 )}
               </View>
               <TouchableOpacity
                 onPress={pickImage}
-                className="absolute bottom-0 right-0 w-10 h-10 bg-[#0F5257] rounded-full items-center justify-center shadow-md"
-                accessibilityLabel="Upload profile picture"
-              >
+                className="absolute bottom-0 right-0 h-10 w-10 items-center justify-center rounded-full bg-[#0F5257] shadow-md"
+                accessibilityLabel="Upload profile picture">
                 <Ionicons name="cloud-upload-outline" size={20} color="white" />
               </TouchableOpacity>
             </View>
-            <Text className="text-[#8E8E8E] text-sm mt-3">Upload profile picture (optional)</Text>
+            <Text className="mt-3 text-sm text-[#8E8E8E]">Upload profile picture (optional)</Text>
             {errors.profileImage ? (
-              <Text className="text-red-500 text-xs mt-1">{errors.profileImage}</Text>
+              <Text className="mt-1 text-xs text-red-500">{errors.profileImage}</Text>
             ) : null}
           </View>
 
           {/* Wallet Address Input */}
           <View className="mb-4">
-            <Text className="text-[#8E8E8E] text-sm mb-2">Wallet Address</Text>
-            <View className="bg-white rounded-xl px-4 py-4 flex-row items-center shadow-sm">
+            <Text className="mb-2 text-sm text-[#8E8E8E]">Wallet Address</Text>
+            <View className="flex-row items-center rounded-xl bg-white px-4 py-4 shadow-sm">
               <Ionicons name="wallet-outline" size={20} color="#8E8E8E" className="mr-3" />
               <TextInput
                 placeholder="G..."
                 placeholderTextColor="#BFBFBF"
                 value={walletAddress}
                 onChangeText={handleWalletAddressChange}
-                className="flex-1 text-[#343434] text-base ml-3"
+                className="ml-3 flex-1 text-base text-[#343434]"
                 autoCapitalize="characters"
                 accessibilityLabel="Wallet address input"
               />
             </View>
             {errors.walletAddress ? (
-              <Text className="text-red-500 text-xs mt-1">{errors.walletAddress}</Text>
+              <Text className="mt-1 text-xs text-red-500">{errors.walletAddress}</Text>
             ) : null}
           </View>
 
           {/* Username Input */}
           <View className="mb-4">
-            <Text className="text-[#8E8E8E] text-sm mb-2">Username</Text>
-            <View className="bg-white rounded-xl px-4 py-4 flex-row items-center shadow-sm">
+            <Text className="mb-2 text-sm text-[#8E8E8E]">Username</Text>
+            <View className="flex-row items-center rounded-xl bg-white px-4 py-4 shadow-sm">
               <Ionicons name="person-outline" size={20} color="#8E8E8E" className="mr-3" />
-              <Text className="text-[#343434] text-base ml-3">@</Text>
+              <Text className="ml-3 text-base text-[#343434]">@</Text>
               <TextInput
                 placeholder="josue_crypto"
                 placeholderTextColor="#BFBFBF"
                 value={username}
                 onChangeText={handleUsernameChange}
-                className="flex-1 text-[#343434] text-base ml-1"
+                className="ml-1 flex-1 text-base text-[#343434]"
                 autoCapitalize="none"
                 accessibilityLabel="Username input"
               />
             </View>
             {errors.username ? (
-              <Text className="text-red-500 text-xs mt-1">{errors.username}</Text>
+              <Text className="mt-1 text-xs text-red-500">{errors.username}</Text>
             ) : null}
           </View>
 
           {/* Display Name Input */}
           <View className="mb-6">
-            <Text className="text-[#8E8E8E] text-sm mb-2">Display Name</Text>
-            <View className="bg-white rounded-xl px-4 py-4 flex-row items-center shadow-sm">
+            <Text className="mb-2 text-sm text-[#8E8E8E]">Display Name</Text>
+            <View className="flex-row items-center rounded-xl bg-white px-4 py-4 shadow-sm">
               <Ionicons name="person-outline" size={20} color="#8E8E8E" className="mr-3" />
               <TextInput
                 placeholder="Josué Martínez"
                 placeholderTextColor="#BFBFBF"
                 value={displayName}
                 onChangeText={handleDisplayNameChange}
-                className="flex-1 text-[#343434] text-base ml-3"
+                className="ml-3 flex-1 text-base text-[#343434]"
                 accessibilityLabel="Display name input"
               />
             </View>
             {errors.displayName ? (
-              <Text className="text-red-500 text-xs mt-1">{errors.displayName}</Text>
+              <Text className="mt-1 text-xs text-red-500">{errors.displayName}</Text>
             ) : null}
           </View>
 
           {/* Info Box */}
-          <View className="bg-[#E0F2FE] rounded-xl p-4 flex-row mb-6">
-            <View className="w-10 h-10 bg-[#0EA5E9] rounded-full items-center justify-center mr-3">
+          <View className="mb-6 flex-row rounded-xl bg-[#E0F2FE] p-4">
+            <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#0EA5E9]">
               <Ionicons name="information" size={24} color="white" />
             </View>
             <View className="flex-1">
-              <Text className="text-[#0F5257] font-semibold text-sm mb-1">
+              <Text className="mb-1 text-sm font-semibold text-[#0F5257]">
                 Your wallet is your identity
               </Text>
-              <Text className="text-[#0F5257] text-xs leading-5">
-                Make sure you have access to your wallet address. This will be used to verify your transactions and build your reputation.
+              <Text className="text-xs leading-5 text-[#0F5257]">
+                Make sure you have access to your wallet address. This will be used to verify your
+                transactions and build your reputation.
               </Text>
             </View>
           </View>
@@ -148,19 +137,18 @@ const CreateAccountScreen = ({ navigation }: any) => {
           {/* Terms & Conditions Checkbox */}
           <TouchableOpacity
             onPress={() => handleTermsAcceptedChange(!termsAccepted)}
-            className="flex-row items-start mb-6"
+            className="mb-6 flex-row items-start"
             activeOpacity={0.7}
             accessibilityLabel="Accept terms and conditions"
-            accessibilityRole="checkbox"
-          >
-            <View className={`w-5 h-5 rounded ${termsAccepted ? 'bg-[#0F5257]' : 'bg-white border-2 border-gray-300'} items-center justify-center mr-3 mt-0.5`}>
+            accessibilityRole="checkbox">
+            <View
+              className={`h-5 w-5 rounded ${termsAccepted ? 'bg-[#0F5257]' : 'border-2 border-gray-300 bg-white'} mr-3 mt-0.5 items-center justify-center`}>
               {termsAccepted && <Ionicons name="checkmark" size={16} color="white" />}
             </View>
-            <Text className="text-[#8E8E8E] text-sm flex-1">
+            <Text className="flex-1 text-sm text-[#8E8E8E]">
               By creating an account, you agree to our{' '}
-              <Text className="text-[#0F5257] font-semibold">Terms of Service</Text>
-              {' '}and{' '}
-              <Text className="text-[#0F5257] font-semibold">Privacy Policy</Text>
+              <Text className="font-semibold text-[#0F5257]">Terms of Service</Text> and{' '}
+              <Text className="font-semibold text-[#0F5257]">Privacy Policy</Text>
             </Text>
           </TouchableOpacity>
 
@@ -168,25 +156,27 @@ const CreateAccountScreen = ({ navigation }: any) => {
           <TouchableOpacity
             onPress={createAccount}
             disabled={!isFormValid() || isSubmitting}
-            className={`rounded-xl py-4 items-center flex-row justify-center ${
+            className={`flex-row items-center justify-center rounded-xl py-4 ${
               isFormValid() && !isSubmitting ? 'bg-[#FF9C6E]' : 'bg-gray-300'
             }`}
             activeOpacity={0.8}
-            accessibilityLabel="Create account button"
-          >
+            accessibilityLabel="Create account button">
             {isSubmitting ? (
               <>
-                <Text className="font-semibold text-base mr-2 text-white">
-                  Creating Account...
-                </Text>
+                <Text className="mr-2 text-base font-semibold text-white">Creating Account...</Text>
                 <Ionicons name="hourglass" size={18} color="white" />
               </>
             ) : (
               <>
-                <Text className={`font-semibold text-base mr-2 ${isFormValid() ? 'text-white' : 'text-gray-500'}`}>
+                <Text
+                  className={`mr-2 text-base font-semibold ${isFormValid() ? 'text-white' : 'text-gray-500'}`}>
                   Create Account
                 </Text>
-                <Ionicons name="arrow-forward" size={18} color={isFormValid() ? 'white' : '#6B7280'} />
+                <Ionicons
+                  name="arrow-forward"
+                  size={18}
+                  color={isFormValid() ? 'white' : '#6B7280'}
+                />
               </>
             )}
           </TouchableOpacity>
@@ -195,17 +185,15 @@ const CreateAccountScreen = ({ navigation }: any) => {
 
       {/* Success Notification */}
       {showSuccess && (
-        <View className="absolute top-20 left-6 right-6 bg-[#10B981] rounded-xl shadow-lg p-4 flex-row items-center">
-          <View className="w-10 h-10 bg-white rounded-full items-center justify-center mr-3">
+        <View className="absolute left-6 right-6 top-20 flex-row items-center rounded-xl bg-[#10B981] p-4 shadow-lg">
+          <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-white">
             <Ionicons name="checkmark-circle" size={28} color="#10B981" />
           </View>
           <View className="flex-1">
-            <Text className="text-white font-bold text-base mb-1">
+            <Text className="mb-1 text-base font-bold text-white">
               Account Created Successfully!
             </Text>
-            <Text className="text-white text-sm">
-              Welcome to TrustUp, @{username}
-            </Text>
+            <Text className="text-sm text-white">Welcome to TrustUp, @{username}</Text>
           </View>
         </View>
       )}
