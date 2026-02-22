@@ -183,3 +183,5 @@ const styles = StyleSheet.create({
   footerText: { color: '#64748b' },
   signUpText: { color: '#0ea5e9', fontWeight: '700' },
 });
+
+// DONE
