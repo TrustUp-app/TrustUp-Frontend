@@ -1,14 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { User, Lock, Eye, EyeOff, Wallet, ArrowRight } from 'lucide-react-native';
 
 export default function SignInScreen() {
@@ -42,11 +34,12 @@ export default function SignInScreen() {
         <View className="mb-10 items-center">
           <View
             className="mb-4 h-[100px] w-[100px] items-center justify-center rounded-3xl bg-white shadow-md"
-            style={Platform.select({ android: { elevation: 5 } })}>
+            style={Platform.select({ android: { elevation: 5 } })} // elevation for Android shadow
+          >
             {/* Image requires numeric dimensions; resizeMode set via prop */}
             <Image
               source={require('../../assets/trustUpLogo.png')}
-              style={{ width: 80, height: 80 }}
+              style={{ width: 80, height: 80 }} // Image size must be numeric, not className
               resizeMode="contain"
             />
           </View>
@@ -82,7 +75,10 @@ export default function SignInScreen() {
               onChangeText={setPassword}
               secureTextEntry={secureText}
             />
-            <TouchableOpacity onPress={() => setSecureText(!secureText)}>
+            <TouchableOpacity
+              onPress={() => setSecureText((prev) => !prev)}
+              accessibilityLabel={secureText ? 'Show password' : 'Hide password'}
+            >
               {secureText ? (
                 <Eye stroke="#94a3b8" size={20} />
               ) : (
@@ -98,9 +94,11 @@ export default function SignInScreen() {
           {/* Sign In Button */}
           <TouchableOpacity
             className={`h-[60px] flex-row items-center justify-center rounded-[20px] ${isValid ? 'bg-signin-orange shadow-lg' : 'bg-[#cbd5e1]'}`}
-            style={{ elevation: isValid ? 8 : 0 }}
+            style={Platform.select({ android: { elevation: isValid ? 8 : 0 } })} // elevation for Android only
             disabled={!isValid}
-            onPress={handleSignIn}>
+            onPress={handleSignIn}
+            accessibilityState={{ disabled: !isValid }}
+          >
             <Text className="mr-2 text-lg font-bold text-white">Sign In</Text>
             <ArrowRight stroke="#fff" size={18} />
           </TouchableOpacity>
