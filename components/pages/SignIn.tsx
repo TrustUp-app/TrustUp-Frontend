@@ -1,6 +1,14 @@
-
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import { User, Lock, Eye, EyeOff, Wallet, ArrowRight } from 'lucide-react-native';
 
 export default function SignInScreen() {
@@ -77,8 +85,7 @@ export default function SignInScreen() {
             />
             <TouchableOpacity
               onPress={() => setSecureText((prev) => !prev)}
-              accessibilityLabel={secureText ? 'Show password' : 'Hide password'}
-            >
+              accessibilityLabel={secureText ? 'Show password' : 'Hide password'}>
               {secureText ? (
                 <Eye stroke="#94a3b8" size={20} />
               ) : (
@@ -97,8 +104,7 @@ export default function SignInScreen() {
             style={Platform.select({ android: { elevation: isValid ? 8 : 0 } })} // elevation for Android only
             disabled={!isValid}
             onPress={handleSignIn}
-            accessibilityState={{ disabled: !isValid }}
-          >
+            accessibilityState={{ disabled: !isValid }}>
             <Text className="mr-2 text-lg font-bold text-white">Sign In</Text>
             <ArrowRight stroke="#fff" size={18} />
           </TouchableOpacity>
