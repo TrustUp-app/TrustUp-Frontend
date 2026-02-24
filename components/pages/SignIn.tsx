@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { User, Lock, Eye, EyeOff, Wallet, ArrowRight } from 'lucide-react-native';
 
@@ -7,12 +7,9 @@ export default function SignInScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [secureText, setSecureText] = useState(true);
-  const [isValid, setIsValid] = useState(false);
 
-  // Form Validation Logic
-  useEffect(() => {
-    setIsValid(username.trim().length > 0 && password.trim().length > 0);
-  }, [username, password]);
+  // Derived validation — computed every render, no stale state possible
+  const isValid = username.trim().length > 0 && password.trim().length > 0;
 
   const handleSignIn = () => {
     console.log('Form Data:', { username, password });
@@ -67,13 +64,16 @@ export default function SignInScreen() {
           <Text className="mb-2 ml-1 text-xs font-bold text-[#94a3b8]">Password</Text>
           <View className="mb-4 h-14 flex-row items-center rounded-2xl border border-[#f1f5f9] bg-white px-4">
             <Lock stroke="#94a3b8" size={20} />
+            {/* key forces remount when toggling secureTextEntry — fixes RN bug where toggle stops working */}
             <TextInput
+              key={secureText ? 'secure' : 'visible'}
               className="flex-1 text-base text-[#1e293b]"
               placeholder="••••••••"
               placeholderTextColor="#cbd5e1"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={secureText}
+              autoComplete="off"
             />
             <TouchableOpacity
               onPress={() => setSecureText((prev) => !prev)}
