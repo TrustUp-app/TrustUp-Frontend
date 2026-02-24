@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   View,
@@ -11,21 +11,17 @@ import {
   ScrollView,
 } from 'react-native';
 import { User, Lock, Eye, EyeOff, Wallet, ArrowRight } from 'lucide-react-native';
+import { useSignIn } from '../../hooks/auth/use-sign-in';
 
 export default function SignInScreen() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [secureText, setSecureText] = useState(true);
-  const [isValid, setIsValid] = useState(false);
-
-  // Form Validation Logic
-  useEffect(() => {
-    setIsValid(username.trim().length > 0 && password.trim().length > 0);
-  }, [username, password]);
-
-  const handleSignIn = () => {
-    console.log('Form Data:', { username, password });
-  };
+  const {
+    formState,
+    isValid,
+    handleUsernameChange,
+    handlePasswordChange,
+    toggleSecureText,
+    handleSignIn,
+  } = useSignIn();
 
   return (
     <KeyboardAvoidingView
@@ -50,8 +46,8 @@ export default function SignInScreen() {
               style={styles.input}
               placeholder="@josue_crypto"
               placeholderTextColor="#cbd5e1"
-              value={username}
-              onChangeText={setUsername}
+              value={formState.username}
+              onChangeText={handleUsernameChange}
               autoCapitalize="none"
             />
           </View>
@@ -63,12 +59,12 @@ export default function SignInScreen() {
               style={styles.input}
               placeholder="••••••••"
               placeholderTextColor="#cbd5e1"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={secureText}
+              value={formState.password}
+              onChangeText={handlePasswordChange}
+              secureTextEntry={formState.secureText}
             />
-            <TouchableOpacity onPress={() => setSecureText(!secureText)}>
-              {secureText ? (
+            <TouchableOpacity onPress={toggleSecureText}>
+              {formState.secureText ? (
                 <Eye stroke="#94a3b8" size={20} />
               ) : (
                 <EyeOff stroke="#94a3b8" size={20} />
