@@ -4,24 +4,28 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Pressable,
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { User, Lock, Eye, EyeOff, Wallet, ArrowRight } from 'lucide-react-native';
-import { useSignIn } from '../../hooks/auth/use-sign-in';
 
 export default function SignInScreen() {
-  // secureText is a UI-only concern, kept in local state
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [secureText, setSecureText] = useState(true);
-  const {
-    formState,
-    isValid,
-    handleUsernameChange,
-    handlePasswordChange,
-    handleSignIn,
-  } = useSignIn();
+
+  // Derived validation — computed every render, no stale state possible
+  const isValid = username.trim().length > 0 && password.trim().length > 0;
+
+  const handleSignIn = () => {
+    if (!isValid) return;
+    console.log('Form Data:', { username, password });
+    Alert.alert('Sign In', `Username: ${username}`);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -29,6 +33,7 @@ export default function SignInScreen() {
       className="flex-1 bg-[#f8fafc]">
       {/* contentContainerStyle does not support className in NativeWind */}
       <ScrollView
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           padding: 24,
           alignItems: 'center',
@@ -39,12 +44,11 @@ export default function SignInScreen() {
         <View className="mb-10 items-center">
           <View
             className="mb-4 h-[100px] w-[100px] items-center justify-center rounded-3xl bg-white shadow-md"
-            style={Platform.select({ android: { elevation: 5 } })} // elevation for Android shadow
-          >
+            style={Platform.select({ android: { elevation: 5 } })}>
             {/* Image requires numeric dimensions; resizeMode set via prop */}
             <Image
               source={require('../../assets/trustUpLogo.png')}
-              style={{ width: 80, height: 80 }} // Image size must be numeric, not className
+              style={{ width: 80, height: 80 }}
               resizeMode="contain"
             />
           </View>
@@ -57,55 +61,64 @@ export default function SignInScreen() {
         {/* Form Fields */}
         <View className="mt-2.5 w-full">
           <Text className="mb-2 ml-1 text-xs font-bold text-[#94a3b8]">Username</Text>
-          <View className="mb-4 h-14 flex-row items-center rounded-2xl border border-[#f1f5f9] bg-white px-4">
+          <View className="mb-4 flex-row items-center rounded-2xl border border-[#f1f5f9] bg-white px-4 py-4">
             <User stroke="#94a3b8" size={20} />
             <TextInput
-              className="flex-1 text-base text-[#1e293b]"
+              className="ml-2 flex-1 text-base text-[#1e293b]"
               placeholder="@josue_crypto"
               placeholderTextColor="#cbd5e1"
-              value={formState.username}
-              onChangeText={handleUsernameChange}
+              value={username}
+              onChangeText={setUsername}
               autoCapitalize="none"
             />
           </View>
 
           <Text className="mb-2 ml-1 text-xs font-bold text-[#94a3b8]">Password</Text>
-          <View className="mb-4 h-14 flex-row items-center rounded-2xl border border-[#f1f5f9] bg-white px-4">
+          <View className="mb-4 flex-row items-center rounded-2xl border border-[#f1f5f9] bg-white px-4 py-4">
             <Lock stroke="#94a3b8" size={20} />
             <TextInput
-              className="flex-1 text-base text-[#1e293b]"
+              className="ml-2 flex-1 text-base text-[#1e293b]"
               placeholder="••••••••"
               placeholderTextColor="#cbd5e1"
-              value={formState.password}
-              onChangeText={handlePasswordChange}
+              value={password}
+              onChangeText={setPassword}
               secureTextEntry={secureText}
             />
-            <TouchableOpacity
+            <Pressable
               onPress={() => setSecureText((prev) => !prev)}
               accessibilityLabel={secureText ? 'Show password' : 'Hide password'}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              hitSlop={12}
+              style={{ padding: 8 }}>
               {secureText ? (
                 <Eye stroke="#94a3b8" size={20} />
               ) : (
                 <EyeOff stroke="#94a3b8" size={20} />
               )}
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
-          <TouchableOpacity className="mb-6 self-end">
+          <TouchableOpacity className="mb-6 self-end" activeOpacity={0.7}>
             <Text className="text-sm font-bold text-signin-link">Forgot password?</Text>
           </TouchableOpacity>
 
           {/* Sign In Button */}
-          <TouchableOpacity
-            className={`h-[60px] flex-row items-center justify-center rounded-[20px] ${isValid ? 'bg-signin-orange shadow-lg' : 'bg-[#cbd5e1]'}`}
-            style={Platform.select({ android: { elevation: isValid ? 8 : 0 } })} // elevation for Android only
-            disabled={!isValid}
+          <Pressable
             onPress={handleSignIn}
-            accessibilityState={{ disabled: !isValid }}>
-            <Text className="mr-2 text-lg font-bold text-white">Sign In</Text>
+            accessibilityState={{ disabled: !isValid }}
+            style={{
+              height: 60,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 20,
+              backgroundColor: isValid ? '#ff9a76' : '#cbd5e1',
+              elevation: isValid ? 8 : 0,
+            }}>
+            <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: 'bold', marginRight: 8 }}>
+              Sign In
+            </Text>
             <ArrowRight stroke="#fff" size={18} />
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Divider */}
@@ -116,7 +129,9 @@ export default function SignInScreen() {
         </View>
 
         {/* Connect Wallet */}
-        <TouchableOpacity className="h-[60px] w-full flex-row items-center justify-center rounded-[20px] border border-wallet-border bg-wallet-bg">
+        <TouchableOpacity
+          className="h-[60px] w-full flex-row items-center justify-center rounded-[20px] border border-wallet-border bg-wallet-bg"
+          activeOpacity={0.7}>
           <Wallet stroke="#f59e0b" size={20} />
           <Text className="text-base font-bold text-wallet-border">Connect Wallet</Text>
         </TouchableOpacity>
@@ -124,7 +139,7 @@ export default function SignInScreen() {
         {/* Footer */}
         <View className="mt-8 flex-row">
           <Text className="text-[#64748b]">Don&apos;t have an account? </Text>
-          <TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.7}>
             <Text className="font-bold text-signin-link">Sign Up</Text>
           </TouchableOpacity>
         </View>
