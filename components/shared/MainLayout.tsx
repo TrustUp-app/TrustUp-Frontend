@@ -1,9 +1,11 @@
-import { View, ScrollView, SafeAreaView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, ScrollView, SafeAreaView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 
 import { ReactNode, useState } from 'react';
 
 import { BottomBar } from './BottomBar';
 import { Header } from './Header';
+// Centralized color palette shared with Tailwind
+const colors = require('../../theme/colors.json');
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -42,7 +44,7 @@ const BOTTOM_BAR_HEIGHT = 60;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   flex: {
     flex: 1,
@@ -54,14 +56,14 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
   },
-bottomBarContainer: {
-  position: 'absolute',
-  left: 0,
-  right: 0,
-  bottom: 0,
-  height: BOTTOM_BAR_HEIGHT,
-  backgroundColor: 'transparent',
-  zIndex: 10,
-},
+  bottomBarContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: BOTTOM_BAR_HEIGHT,
+    backgroundColor: 'transparent',
+    zIndex: 10,
+  },
 });
 

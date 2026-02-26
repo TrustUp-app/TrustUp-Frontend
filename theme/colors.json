@@ -1,0 +1,53 @@
+{
+  "background": "#F5F5F5",
+  "backgroundSoft": "#f8fafc",
+  "surface": "#FFFFFF",
+
+  "primary": "#0F5257",
+  "primarySoft": "#E0F2FE",
+  "primaryTint": "#0EA5E9",
+
+  "cta": "#FF9C6E",
+  "ctaAlt": "#ff9a76",
+  "ctaStrong": "#FF9C42",
+
+  "walletBorder": "#FBBF24",
+  "walletBg": "#FFDAB9",
+
+  "text": "#343434",
+  "textMuted": "#8E8E8E",
+  "textSecondary": "#6B7280",
+  "textSubtle": "#9CA3AF",
+  "textStrong": "#1F2937",
+  "heading": "#1e293b",
+  "label": "#94a3b8",
+  "tagline": "#64748b",
+
+  "placeholder": "#BFBFBF",
+  "placeholderMuted": "#cbd5e1",
+  "placeholderAlt": "#D1D5DB",
+
+  "border": "#EBEBEB",
+  "borderSubtle": "#f1f5f9",
+  "divider": "#e2e8f0",
+
+  "success": "#10B981",
+  "successSoft": "#D1FAE5",
+  "successBadge": "#A7F3D0",
+  "successDeep": "#059669",
+
+  "error": "#EF4444",
+  "errorSoft": "#FECACA",
+
+  "info": "#3B82F6",
+  "infoSoft": "#EFF6FF",
+
+  "purple": "#9333EA",
+  "purpleSoft": "#E9D5FF",
+
+  "amber": "#F59E0B",
+  "amberSoft": "#FEF3C7",
+
+  "shadowStrong": "#000000",
+  "white": "#FFFFFF"
+}

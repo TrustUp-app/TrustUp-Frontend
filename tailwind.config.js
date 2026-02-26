@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const appColors = require('./theme/colors.json');
+
 module.exports = {
   content: ['./App.{js,ts,tsx}', './components/**/*.{js,ts,tsx}'],
   darkMode: 'class',
