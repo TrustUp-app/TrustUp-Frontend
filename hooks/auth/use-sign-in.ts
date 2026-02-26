@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
 /**
  * Form field state for the sign in form
@@ -6,7 +6,6 @@ import { useState, useCallback, useEffect } from 'react';
 export interface SignInFormState {
   username: string;
   password: string;
-  secureText: boolean;
 }
 
 /**
@@ -20,7 +19,6 @@ export interface UseSignInReturn {
   // Field handlers
   handleUsernameChange: (text: string) => void;
   handlePasswordChange: (text: string) => void;
-  toggleSecureText: () => void;
 
   // Actions
   handleSignIn: () => void;
@@ -32,7 +30,6 @@ export interface UseSignInReturn {
 const initialFormState: SignInFormState = {
   username: '',
   password: '',
-  secureText: true,
 };
 
 /**
@@ -49,12 +46,9 @@ export const validateSignInForm = (username: string, password: string): boolean 
  */
 export const useSignIn = (): UseSignInReturn => {
   const [formState, setFormState] = useState<SignInFormState>(initialFormState);
-  const [isValid, setIsValid] = useState(false);
 
-  // Form Validation Logic
-  useEffect(() => {
-    setIsValid(validateSignInForm(formState.username, formState.password));
-  }, [formState.username, formState.password]);
+  // Derived validation — computed every render, no stale state possible
+  const isValid = validateSignInForm(formState.username, formState.password);
 
   // Field change handlers
   const handleUsernameChange = useCallback((text: string) => {
@@ -63,10 +57,6 @@ export const useSignIn = (): UseSignInReturn => {
 
   const handlePasswordChange = useCallback((text: string) => {
     setFormState((prev) => ({ ...prev, password: text }));
-  }, []);
-
-  const toggleSecureText = useCallback(() => {
-    setFormState((prev) => ({ ...prev, secureText: !prev.secureText }));
   }, []);
 
   // Sign in handler
@@ -82,7 +72,6 @@ export const useSignIn = (): UseSignInReturn => {
     // Field handlers
     handleUsernameChange,
     handlePasswordChange,
-    toggleSecureText,
 
     // Actions
     handleSignIn,
