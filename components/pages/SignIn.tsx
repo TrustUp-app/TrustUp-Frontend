@@ -1,19 +1,18 @@
 import React from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   TextInput,
   TouchableOpacity,
+  Pressable,
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { User, Lock, Eye, EyeOff, Wallet, ArrowRight } from 'lucide-react-native';
 import { useSignIn } from '../../hooks/auth/use-sign-in';
-// Centralized color palette shared with Tailwind
-const colors = require('../../theme/colors.json');
 
 export default function SignInScreen() {
   const {
@@ -28,174 +27,120 @@ export default function SignInScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      className="flex-1 bg-[#f8fafc]">
+      {/* contentContainerStyle does not support className in NativeWind */}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          padding: 24,
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexGrow: 1,
+        }}>
         {/* Logo Section */}
         <View className="mb-10 items-center">
-          <View style={styles.logoContainer}>
-            <Image source={require('../../assets/trustUpLogo.png')} style={styles.logo} />
+          <View
+            className="mb-4 h-[100px] w-[100px] items-center justify-center rounded-3xl bg-white shadow-md"
+            style={Platform.select({ android: { elevation: 5 } })}>
+            {/* Image requires numeric dimensions; resizeMode set via prop */}
+            <Image
+              source={require('../../assets/trustUpLogo.png')}
+              style={{ width: 80, height: 80 }}
+              resizeMode="contain"
+            />
           </View>
-          <Text style={styles.title}>Trust Up</Text>
-          <Text style={styles.tagline}>Build your reputation, unlock your credit</Text>
+          <Text className="text-[32px] font-extrabold text-[#1e293b]">Trust Up</Text>
+          <Text className="mt-1 text-sm text-[#64748b]">
+            Build your reputation, unlock your credit
+          </Text>
         </View>
 
         {/* Form Fields */}
-        <View style={styles.form}>
-          <Text style={styles.label}>Username</Text>
-          <View style={styles.inputWrapper}>
-            <User stroke={colors.label} size={20} />
+        <View className="mt-2.5 w-full">
+          <Text className="mb-2 ml-1 text-xs font-bold text-[#94a3b8]">Username</Text>
+          <View className="mb-4 flex-row items-center rounded-2xl border border-[#f1f5f9] bg-white px-4 py-4">
+            <User stroke="#94a3b8" size={20} />
             <TextInput
-              style={styles.input}
+              className="ml-2 flex-1 text-base text-[#1e293b]"
               placeholder="@josue_crypto"
-              placeholderTextColor={colors.placeholderMuted}
+              placeholderTextColor="#cbd5e1"
               value={formState.username}
               onChangeText={handleUsernameChange}
               autoCapitalize="none"
             />
           </View>
 
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.inputWrapper}>
-            <Lock stroke={colors.label} size={20} />
+          <Text className="mb-2 ml-1 text-xs font-bold text-[#94a3b8]">Password</Text>
+          <View className="mb-4 flex-row items-center rounded-2xl border border-[#f1f5f9] bg-white px-4 py-4">
+            <Lock stroke="#94a3b8" size={20} />
             <TextInput
-              style={styles.input}
+              className="ml-2 flex-1 text-base text-[#1e293b]"
               placeholder="••••••••"
-              placeholderTextColor={colors.placeholderMuted}
+              placeholderTextColor="#cbd5e1"
               value={formState.password}
               onChangeText={handlePasswordChange}
               secureTextEntry={formState.secureText}
             />
-            <TouchableOpacity onPress={toggleSecureText}>
+            <Pressable
+              onPress={toggleSecureText}
+              accessibilityLabel={formState.secureText ? 'Show password' : 'Hide password'}
+              hitSlop={12}
+              style={{ padding: 8 }}>
               {formState.secureText ? (
-                <Eye stroke={colors.label} size={20} />
+                <Eye stroke="#94a3b8" size={20} />
               ) : (
-                <EyeOff stroke={colors.label} size={20} />
+                <EyeOff stroke="#94a3b8" size={20} />
               )}
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
-          <TouchableOpacity style={styles.forgotBtn}>
-            <Text style={styles.forgotText}>Forgot password?</Text>
+          <TouchableOpacity className="mb-6 self-end" activeOpacity={0.7}>
+            <Text className="text-sm font-bold text-signin-link">Forgot password?</Text>
           </TouchableOpacity>
 
           {/* Sign In Button */}
-          <TouchableOpacity
-            style={[styles.signInBtn, !isValid && styles.disabledBtn]}
-            disabled={!isValid}
-            onPress={handleSignIn}>
-            <Text style={styles.signInBtnText}>Sign In</Text>
-            <ArrowRight stroke={colors.white} size={18} />
-          </TouchableOpacity>
+          <Pressable
+            onPress={handleSignIn}
+            accessibilityState={{ disabled: !isValid }}
+            style={{
+              height: 60,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 20,
+              backgroundColor: isValid ? '#ff9a76' : '#cbd5e1',
+              elevation: isValid ? 8 : 0,
+            }}>
+            <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: 'bold', marginRight: 8 }}>
+              Sign In
+            </Text>
+            <ArrowRight stroke="#fff" size={18} />
+          </Pressable>
         </View>
 
         {/* Divider */}
-        <View style={styles.dividerContainer}>
-          <View style={styles.line} />
-          <Text style={styles.orText}>OR</Text>
-          <View style={styles.line} />
+        <View className="my-8 w-full flex-row items-center">
+          <View className="h-px flex-1 bg-[#e2e8f0]" />
+          <Text className="mx-4 text-xs font-extrabold text-[#cbd5e1]">OR</Text>
+          <View className="h-px flex-1 bg-[#e2e8f0]" />
         </View>
 
         {/* Connect Wallet */}
-        <TouchableOpacity style={styles.walletBtn}>
-          <Wallet stroke={colors.amber} size={20} />
-          <Text style={styles.walletBtnText}>Connect Wallet</Text>
+        <TouchableOpacity
+          className="h-[60px] w-full flex-row items-center justify-center rounded-[20px] border border-wallet-border bg-wallet-bg"
+          activeOpacity={0.7}>
+          <Wallet stroke="#f59e0b" size={20} />
+          <Text className="text-base font-bold text-wallet-border">Connect Wallet</Text>
         </TouchableOpacity>
 
         {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don&apos;t have an account? </Text>
-          <TouchableOpacity>
-            <Text style={styles.signUpText}>Sign Up</Text>
+        <View className="mt-8 flex-row">
+          <Text className="text-[#64748b]">Don&apos;t have an account? </Text>
+          <TouchableOpacity activeOpacity={0.7}>
+            <Text className="font-bold text-signin-link">Sign Up</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.backgroundSoft },
-  scrollContent: { padding: 24, alignItems: 'center', justifyContent: 'center', flexGrow: 1 },
-  logoContainer: {
-    width: 100,
-    height: 100,
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.shadowStrong,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-      },
-      android: { elevation: 5 },
-    }),
-  },
-  logo: { width: 80, height: 80, resizeMode: 'contain' },
-  title: { fontSize: 32, fontWeight: '800', color: colors.heading },
-  tagline: { fontSize: 14, color: colors.tagline, marginTop: 4 },
-  form: { width: '100%', marginTop: 10 },
-  label: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.label,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    height: 56,
-    marginBottom: 16,
-  },
-  icon: { marginRight: 12 },
-  input: { flex: 1, color: colors.heading, fontSize: 16 },
-  forgotBtn: { alignSelf: 'flex-end', marginBottom: 24 },
-  forgotText: { color: colors.primaryTint, fontWeight: '700', fontSize: 14 },
-  signInBtn: {
-    backgroundColor: colors.ctaAlt,
-    height: 60,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.ctaAlt,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  disabledBtn: { backgroundColor: colors.placeholderMuted, shadowOpacity: 0, elevation: 0 },
-  signInBtnText: { color: colors.white, fontSize: 18, fontWeight: '700', marginRight: 8 },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 32,
-    width: '100%',
-  },
-  line: { flex: 1, height: 1, backgroundColor: colors.divider },
-  orText: { marginHorizontal: 16, color: colors.placeholderMuted, fontSize: 12, fontWeight: '800' },
-  walletBtn: {
-    width: '100%',
-    height: 60,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.walletBorder,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.walletBg,
-  },
-  walletBtnText: { color: colors.walletBorder, fontSize: 16, fontWeight: '700' },
-  footer: { flexDirection: 'row', marginTop: 32 },
-  footerText: { color: colors.tagline },
-  signUpText: { color: colors.primaryTint, fontWeight: '700' },
-});
