@@ -6,6 +6,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/Navigation';
 
 type HeaderNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+// Centralized color palette shared with Tailwind
+const colors = require('../../theme/colors.json');
 
 export const Header = () => {
   const navigation = useNavigation<HeaderNavigationProp>();
@@ -14,7 +16,7 @@ export const Header = () => {
     <View className="bg-white px-6 pb-4 pt-12">
       <View className="flex-row items-center justify-between">
         {/* Greetings */}
-        <Text className="text-xl font-semibold text-[#343434]">Good evening, Josué</Text>
+        <Text className="text-xl font-semibold text-text">Good evening, Josué</Text>
 
         {/* Right icon */}
         <View className="flex-row items-center gap-4">
@@ -29,7 +31,7 @@ export const Header = () => {
 
           {/* Notifications icon */}
           <TouchableOpacity activeOpacity={0.7} className="h-10 w-10 items-center justify-center">
-            <Ionicons name="notifications-outline" size={24} color="#343434" />
+            <Ionicons name="notifications-outline" size={24} color={colors.text} />
           </TouchableOpacity>
 
           {/* Avatar */}

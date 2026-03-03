@@ -1,197 +1,146 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   TextInput,
   TouchableOpacity,
+  Pressable,
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { User, Lock, Eye, EyeOff, Wallet, ArrowRight } from 'lucide-react-native';
+import { useSignIn } from '../../hooks/auth/use-sign-in';
 
 export default function SignInScreen() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [secureText, setSecureText] = useState(true);
-  const [isValid, setIsValid] = useState(false);
-
-  // Form Validation Logic
-  useEffect(() => {
-    setIsValid(username.trim().length > 0 && password.trim().length > 0);
-  }, [username, password]);
-
-  const handleSignIn = () => {
-    console.log('Form Data:', { username, password });
-  };
+  const {
+    formState,
+    isValid,
+    handleUsernameChange,
+    handlePasswordChange,
+    toggleSecureText,
+    handleSignIn,
+  } = useSignIn();
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      className="flex-1 bg-[#f8fafc]">
+      {/* contentContainerStyle does not support className in NativeWind */}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          padding: 24,
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexGrow: 1,
+        }}>
         {/* Logo Section */}
         <View className="mb-10 items-center">
-          <View style={styles.logoContainer}>
-            <Image source={require('../../assets/trustUpLogo.png')} style={styles.logo} />
+          <View
+            className="mb-4 h-[100px] w-[100px] items-center justify-center rounded-3xl bg-white shadow-md"
+            style={Platform.select({ android: { elevation: 5 } })}>
+            {/* Image requires numeric dimensions; resizeMode set via prop */}
+            <Image
+              source={require('../../assets/trustUpLogo.png')}
+              style={{ width: 80, height: 80 }}
+              resizeMode="contain"
+            />
           </View>
-          <Text style={styles.title}>Trust Up</Text>
-          <Text style={styles.tagline}>Build your reputation, unlock your credit</Text>
+          <Text className="text-[32px] font-extrabold text-[#1e293b]">Trust Up</Text>
+          <Text className="mt-1 text-sm text-[#64748b]">
+            Build your reputation, unlock your credit
+          </Text>
         </View>
 
         {/* Form Fields */}
-        <View style={styles.form}>
-          <Text style={styles.label}>Username</Text>
-          <View style={styles.inputWrapper}>
+        <View className="mt-2.5 w-full">
+          <Text className="mb-2 ml-1 text-xs font-bold text-[#94a3b8]">Username</Text>
+          <View className="mb-4 flex-row items-center rounded-2xl border border-[#f1f5f9] bg-white px-4 py-4">
             <User stroke="#94a3b8" size={20} />
             <TextInput
-              style={styles.input}
+              className="ml-2 flex-1 text-base text-[#1e293b]"
               placeholder="@josue_crypto"
               placeholderTextColor="#cbd5e1"
-              value={username}
-              onChangeText={setUsername}
+              value={formState.username}
+              onChangeText={handleUsernameChange}
               autoCapitalize="none"
             />
           </View>
 
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.inputWrapper}>
+          <Text className="mb-2 ml-1 text-xs font-bold text-[#94a3b8]">Password</Text>
+          <View className="mb-4 flex-row items-center rounded-2xl border border-[#f1f5f9] bg-white px-4 py-4">
             <Lock stroke="#94a3b8" size={20} />
             <TextInput
-              style={styles.input}
+              className="ml-2 flex-1 text-base text-[#1e293b]"
               placeholder="••••••••"
               placeholderTextColor="#cbd5e1"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={secureText}
+              value={formState.password}
+              onChangeText={handlePasswordChange}
+              secureTextEntry={formState.secureText}
             />
-            <TouchableOpacity onPress={() => setSecureText(!secureText)}>
-              {secureText ? (
+            <Pressable
+              onPress={toggleSecureText}
+              accessibilityLabel={formState.secureText ? 'Show password' : 'Hide password'}
+              hitSlop={12}
+              style={{ padding: 8 }}>
+              {formState.secureText ? (
                 <Eye stroke="#94a3b8" size={20} />
               ) : (
                 <EyeOff stroke="#94a3b8" size={20} />
               )}
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
-          <TouchableOpacity style={styles.forgotBtn}>
-            <Text style={styles.forgotText}>Forgot password?</Text>
+          <TouchableOpacity className="mb-6 self-end" activeOpacity={0.7}>
+            <Text className="text-sm font-bold text-signin-link">Forgot password?</Text>
           </TouchableOpacity>
 
           {/* Sign In Button */}
-          <TouchableOpacity
-            style={[styles.signInBtn, !isValid && styles.disabledBtn]}
-            disabled={!isValid}
-            onPress={handleSignIn}>
-            <Text style={styles.signInBtnText}>Sign In</Text>
+          <Pressable
+            onPress={handleSignIn}
+            accessibilityState={{ disabled: !isValid }}
+            style={{
+              height: 60,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 20,
+              backgroundColor: isValid ? '#ff9a76' : '#cbd5e1',
+              elevation: isValid ? 8 : 0,
+            }}>
+            <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: 'bold', marginRight: 8 }}>
+              Sign In
+            </Text>
             <ArrowRight stroke="#fff" size={18} />
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Divider */}
-        <View style={styles.dividerContainer}>
-          <View style={styles.line} />
-          <Text style={styles.orText}>OR</Text>
-          <View style={styles.line} />
+        <View className="my-8 w-full flex-row items-center">
+          <View className="h-px flex-1 bg-[#e2e8f0]" />
+          <Text className="mx-4 text-xs font-extrabold text-[#cbd5e1]">OR</Text>
+          <View className="h-px flex-1 bg-[#e2e8f0]" />
         </View>
 
         {/* Connect Wallet */}
-        <TouchableOpacity style={styles.walletBtn}>
+        <TouchableOpacity
+          className="h-[60px] w-full flex-row items-center justify-center rounded-[20px] border border-wallet-border bg-wallet-bg"
+          activeOpacity={0.7}>
           <Wallet stroke="#f59e0b" size={20} />
-          <Text style={styles.walletBtnText}>Connect Wallet</Text>
+          <Text className="text-base font-bold text-wallet-border">Connect Wallet</Text>
         </TouchableOpacity>
 
         {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don&apos;t have an account? </Text>
-          <TouchableOpacity>
-            <Text style={styles.signUpText}>Sign Up</Text>
+        <View className="mt-8 flex-row">
+          <Text className="text-[#64748b]">Don&apos;t have an account? </Text>
+          <TouchableOpacity activeOpacity={0.7}>
+            <Text className="font-bold text-signin-link">Sign Up</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  scrollContent: { padding: 24, alignItems: 'center', justifyContent: 'center', flexGrow: 1 },
-  logoContainer: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-      },
-      android: { elevation: 5 },
-    }),
-  },
-  logo: { width: 80, height: 80, resizeMode: 'contain' },
-  title: { fontSize: 32, fontWeight: '800', color: '#1e293b' },
-  tagline: { fontSize: 14, color: '#64748b', marginTop: 4 },
-  form: { width: '100%', marginTop: 10 },
-  label: { fontSize: 12, fontWeight: '700', color: '#94a3b8', marginBottom: 8, marginLeft: 4 },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    height: 56,
-    marginBottom: 16,
-  },
-  icon: { marginRight: 12 },
-  input: { flex: 1, color: '#1e293b', fontSize: 16 },
-  forgotBtn: { alignSelf: 'flex-end', marginBottom: 24 },
-  forgotText: { color: '#0ea5e9', fontWeight: '700', fontSize: 14 },
-  signInBtn: {
-    backgroundColor: '#ff9a76',
-    height: 60,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#ff9a76',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  disabledBtn: { backgroundColor: '#cbd5e1', shadowOpacity: 0, elevation: 0 },
-  signInBtnText: { color: '#fff', fontSize: 18, fontWeight: '700', marginRight: 8 },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 32,
-    width: '100%',
-  },
-  line: { flex: 1, height: 1, backgroundColor: '#e2e8f0' },
-  orText: { marginHorizontal: 16, color: '#cbd5e1', fontSize: 12, fontWeight: '800' },
-  walletBtn: {
-    width: '100%',
-    height: 60,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#FBBF24',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFDAB9',
-  },
-  walletBtnText: { color: '#FBBF24', fontSize: 16, fontWeight: '700' },
-  footer: { flexDirection: 'row', marginTop: 32 },
-  footerText: { color: '#64748b' },
-  signUpText: { color: '#0ea5e9', fontWeight: '700' },
-});

@@ -17,6 +17,7 @@ export default function App() {
           <Stack.Screen name="Settings" component={SettingsScreen} />
         </Stack.Navigator>
       </NavigationContainer>
+      <InvestScreen />
     </SafeAreaProvider>
   );
 }
