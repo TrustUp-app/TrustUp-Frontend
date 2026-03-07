@@ -4,6 +4,7 @@ import { ReactNode, useState } from 'react';
 
 import { BottomBar } from './BottomBar';
 import { Header } from './Header';
+import { NotificationsPanel } from './NotificationsPanel';
 // Centralized color palette shared with Tailwind
 const colors = require('../../theme/colors.json');
 
@@ -13,6 +14,7 @@ interface MainLayoutProps {
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
   const [activeTab, setActiveTab] = useState('home');
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -22,7 +24,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         keyboardVerticalOffset={60}
       >
         <View style={styles.container}>
-          <Header />
+          <Header onNotificationsPress={() => setIsNotificationsOpen(true)} />
           <ScrollView
             contentContainerStyle={styles.content}
             style={styles.flex}
@@ -34,6 +36,12 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         <View style={styles.bottomBarContainer}>
           <BottomBar activeTab={activeTab} setActiveTab={setActiveTab} />
         </View>
+
+        {/* Notifications Overlay */}
+        <NotificationsPanel
+          isOpen={isNotificationsOpen}
+          onClose={() => setIsNotificationsOpen(false)}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

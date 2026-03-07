@@ -4,7 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 // Centralized color palette shared with Tailwind
 const colors = require('../../theme/colors.json');
 
-export const Header = () => {
+interface HeaderProps {
+  onNotificationsPress?: () => void;
+}
+
+export const Header = ({ onNotificationsPress }: HeaderProps) => {
   return (
     <View className="bg-white px-6 pb-4 pt-12">
       <View className="flex-row items-center justify-between">
@@ -19,7 +23,11 @@ export const Header = () => {
           </TouchableOpacity>
 
           {/* Notifications icon */}
-          <TouchableOpacity activeOpacity={0.7} className="h-10 w-10 items-center justify-center">
+          <TouchableOpacity
+            activeOpacity={0.7}
+            className="h-10 w-10 items-center justify-center"
+            onPress={onNotificationsPress}
+          >
             <Ionicons name="notifications-outline" size={24} color={colors.text} />
           </TouchableOpacity>
 
