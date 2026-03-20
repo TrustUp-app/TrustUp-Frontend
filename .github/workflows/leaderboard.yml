@@ -21,10 +21,17 @@ jobs:
         with:
           node-version: "18"
 
+      - name: Debug structure
+        run: |
+          echo "ROOT:"
+          ls -la
+          echo "INNER:"
+          ls -la TrustUp-Frontend
+
       - name: Run script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node TrustUp-Frontend/scripts/generate-leaderboard.js
+        run: node scripts/generate-leaderboard.js
 
       - name: Commit changes
         run: |
