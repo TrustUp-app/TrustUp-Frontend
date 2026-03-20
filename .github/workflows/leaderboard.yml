@@ -24,7 +24,7 @@ jobs:
       - name: Run script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/generate-leaderboard.js
+        run: node TrustUp-Frontend/scripts/generate-leaderboard.js
 
       - name: Commit changes
         run: |
