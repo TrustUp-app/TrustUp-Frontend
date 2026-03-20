@@ -2,7 +2,7 @@ name: Update Leaderboard
 
 on:
   schedule:
-    - cron: "0 0 * * *" # todos los días
+    - cron: "0 0 * * *" # everyday
   workflow_dispatch:
 
 permissions:
