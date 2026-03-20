@@ -14,7 +14,13 @@ async function getContributors() {
 }
 
 function generateMarkdown(contributors) {
-  const top = contributors.slice(0, 3);
+  const excludedUsers = ["D240021", "Josue19-08"];
+
+  const filtered = contributors.filter(
+    (c) => !excludedUsers.includes(c.login)
+  );
+
+  const top = filtered.slice(0, 3);
 
   let md = `## 🏆 Top 3 Contributors\n\n`;
   md += `<div align="center">\n\n<table>\n<tr>\n`;
