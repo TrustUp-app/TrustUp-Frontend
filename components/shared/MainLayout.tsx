@@ -1,10 +1,11 @@
-import { View, ScrollView, SafeAreaView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, ScrollView, SafeAreaView, StyleSheet, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 
 import { ReactNode, useState } from 'react';
 
 import { BottomBar } from './BottomBar';
 import { Header } from './Header';
 import { NotificationsPanel } from './NotificationsPanel';
+import SettingsScreen from '../pages/SettingsScreen';
 // Centralized color palette shared with Tailwind
 const colors = require('../../theme/colors.json');
 
@@ -15,6 +16,7 @@ interface MainLayoutProps {
 export const MainLayout = ({ children }: MainLayoutProps) => {
   const [activeTab, setActiveTab] = useState('home');
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -24,7 +26,10 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         keyboardVerticalOffset={60}
       >
         <View style={styles.container}>
-          <Header onNotificationsPress={() => setIsNotificationsOpen(true)} />
+          <Header
+            onNotificationsPress={() => setIsNotificationsOpen(true)}
+            onSettingsPress={() => setIsSettingsOpen(true)}
+          />
           <ScrollView
             contentContainerStyle={styles.content}
             style={styles.flex}
@@ -42,6 +47,15 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           isOpen={isNotificationsOpen}
           onClose={() => setIsNotificationsOpen(false)}
         />
+
+        {/* Settings Screen Modal */}
+        <Modal
+          visible={isSettingsOpen}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setIsSettingsOpen(false)}>
+          <SettingsScreen onClose={() => setIsSettingsOpen(false)} />
+        </Modal>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
