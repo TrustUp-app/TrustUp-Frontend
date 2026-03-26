@@ -49,5 +49,9 @@
   "amberSoft": "#FEF3C7",
 
   "shadowStrong": "#000000",
-  "white": "#FFFFFF"
+  "white": "#FFFFFF",
+
+  "settingsBg": "#EEF3EF",
+  "ctaSoft": "#FDEAE0",
+  "toggleActive": "#FF6B35"
 }

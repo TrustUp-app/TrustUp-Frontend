@@ -6,9 +6,10 @@ const colors = require('../../theme/colors.json');
 
 interface HeaderProps {
   onNotificationsPress?: () => void;
+  onSettingsPress?: () => void;
 }
 
-export const Header = ({ onNotificationsPress }: HeaderProps) => {
+export const Header = ({ onNotificationsPress, onSettingsPress }: HeaderProps) => {
   return (
     <View className="bg-white px-6 pb-4 pt-12">
       <View className="flex-row items-center justify-between">
@@ -18,7 +19,13 @@ export const Header = ({ onNotificationsPress }: HeaderProps) => {
         {/* Right icon */}
         <View className="flex-row items-center gap-4">
           {/* Settings icon */}
-          <TouchableOpacity activeOpacity={0.7} className="h-10 w-10 items-center justify-center">
+          <TouchableOpacity
+            activeOpacity={0.7}
+            className="h-10 w-10 items-center justify-center"
+            onPress={onSettingsPress}
+            accessibilityLabel="Open Settings"
+            accessibilityRole="button"
+          >
             <Ionicons name="settings-outline" size={24} color={colors.text} />
           </TouchableOpacity>
 
