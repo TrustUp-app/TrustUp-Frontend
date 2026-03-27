@@ -1,13 +1,9 @@
-import { View, ScrollView, SafeAreaView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-
+import { View, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { ReactNode, useState } from 'react';
-
 import { BottomBar } from './BottomBar';
 import { Header } from './Header';
 import { NotificationsPanel } from './NotificationsPanel';
 import SettingsScreen from '../pages/SettingsScreen';
-// Centralized color palette shared with Tailwind
-const colors = require('../../theme/colors.json');
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -19,32 +15,32 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView className="flex-1 bg-background">
       <KeyboardAvoidingView
-        style={styles.flex}
+        className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={60}
       >
-        <View style={styles.container}>
+        <View className="flex-1 pb-[60px]">
           <Header
             onNotificationsPress={() => setIsNotificationsOpen(true)}
             onSettingsPress={() => setIsSettingsOpen(true)}
           />
           <ScrollView
-            contentContainerStyle={styles.content}
-            style={styles.flex}
+            contentContainerClassName="flex-grow"
+            className="flex-1"
             keyboardShouldPersistTaps="handled"
           >
             {children}
           </ScrollView>
         </View>
-        <View style={styles.bottomBarContainer}>
+        <View className="absolute left-0 right-0 bottom-0 h-[60px] bg-transparent z-10">
           <BottomBar activeTab={activeTab} setActiveTab={setActiveTab} />
         </View>
 
         {/* Settings Overlay */}
         {isSettingsOpen && (
-          <View style={[StyleSheet.absoluteFillObject, { zIndex: 20 }]}>
+          <View className="absolute inset-0 z-20">
             <SettingsScreen onBack={() => setIsSettingsOpen(false)} />
           </View>
         )}
@@ -58,32 +54,3 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     </SafeAreaView>
   );
 };
-
-const BOTTOM_BAR_HEIGHT = 60;
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  flex: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    paddingBottom: BOTTOM_BAR_HEIGHT,
-  },
-  content: {
-    flexGrow: 1,
-  },
-  bottomBarContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: BOTTOM_BAR_HEIGHT,
-    backgroundColor: 'transparent',
-    zIndex: 10,
-  },
-});
-
