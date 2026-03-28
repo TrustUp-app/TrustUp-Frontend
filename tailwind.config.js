@@ -12,6 +12,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        ...appColors,
         'signin-orange': '#ff9a76',
         'signin-link': '#0ea5e9',
         'wallet-border': '#FBBF24',
