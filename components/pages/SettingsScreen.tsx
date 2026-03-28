@@ -81,7 +81,7 @@ interface SettingsScreenProps {
   onBack: () => void;
 }
 
-type RowType = 'link' | 'toggle';
+type RowType = 'link' | 'toggle' | 'coming-soon';
 
 interface SettingsRow {
   icon: keyof typeof Ionicons.glyphMap;
@@ -115,9 +115,9 @@ const SECTIONS: SettingsSection[] = [
   {
     title: 'PREFERENCES',
     rows: [
-      { icon: 'sunny-outline', label: 'Dark Mode', subtitle: 'Switch between light and dark theme', type: 'toggle', toggleKey: 'darkMode' },
+      { icon: 'sunny-outline', label: 'Dark Mode', subtitle: 'Switch between light and dark theme', type: 'coming-soon' },
       { icon: 'notifications-outline', label: 'Notifications', subtitle: 'Receive push notifications', type: 'toggle', toggleKey: 'notifications' },
-      { icon: 'finger-print-outline', label: 'Biometric Authentication', subtitle: 'Use fingerprint or face ID', type: 'toggle', toggleKey: 'biometric' },
+      { icon: 'finger-print-outline', label: 'Biometric Authentication', subtitle: 'Use fingerprint or face ID', type: 'coming-soon' },
     ],
   },
   {
@@ -211,7 +211,55 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
             <View style={{ backgroundColor: colors.white, borderRadius: 16, overflow: 'hidden' }}>
               {section.rows.map((row, index) => (
                 <View key={row.label}>
-                  {row.type === 'toggle' ? (
+                  {row.type === 'coming-soon' ? (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                      }}
+                    >
+                      {/* Grayed icon */}
+                      <View
+                        style={{
+                          backgroundColor: '#F0F0F0',
+                          width: 40,
+                          height: 40,
+                          borderRadius: 20,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginRight: 14,
+                        }}
+                      >
+                        <Ionicons name={row.icon} size={20} color={colors.textMuted} />
+                      </View>
+
+                      {/* Labels */}
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.textMuted, fontSize: 14, fontWeight: '600' }}>
+                          {row.label}
+                        </Text>
+                        <Text style={{ color: colors.placeholder, fontSize: 12, marginTop: 2 }}>
+                          {row.subtitle}
+                        </Text>
+                      </View>
+
+                      {/* Coming soon badge */}
+                      <View
+                        style={{
+                          backgroundColor: colors.ctaSoft,
+                          borderRadius: 20,
+                          paddingHorizontal: 10,
+                          paddingVertical: 4,
+                        }}
+                      >
+                        <Text style={{ color: colors.cta, fontSize: 11, fontWeight: '600' }}>
+                          Coming soon
+                        </Text>
+                      </View>
+                    </View>
+                  ) : row.type === 'toggle' ? (
                     <View
                       style={{
                         flexDirection: 'row',
