@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useSettingsScreen, PrefsState } from '../../hooks/settings/use-settings-screen';
 // Centralized color palette shared with Tailwind
 const colors = require('../../theme/colors.json');
 
@@ -96,13 +97,6 @@ interface SettingsSection {
   rows: SettingsRow[];
 }
 
-interface PrefsState {
-  darkMode: boolean;
-  notifications: boolean;
-  biometric: boolean;
-  autoPay: boolean;
-}
-
 const SECTIONS: SettingsSection[] = [
   {
     title: 'ACCOUNT',
@@ -138,16 +132,7 @@ const SECTIONS: SettingsSection[] = [
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
   const insets = useSafeAreaInsets();
-  const [prefs, setPrefs] = useState<PrefsState>({
-    darkMode: false,
-    notifications: true,
-    biometric: false,
-    autoPay: true,
-  });
-
-  const togglePref = (key: keyof PrefsState) => {
-    setPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+  const { prefs, togglePref } = useSettingsScreen();
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.settingsBg }}>
