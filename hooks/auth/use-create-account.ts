@@ -1,10 +1,13 @@
 import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { fetchNonce, verifySignature } from '../../api/auth';
+import { updateMe } from '../../api/users';
+import { saveAccessToken, saveRefreshToken } from '../../lib/tokenStorage';
+import { ApiError } from '../../lib/apiClient';
 
-/**
- * Form field state for the create account form
- */
+// ─── Types ───────────────────────────────────────────────────────────────────
+
 export interface CreateAccountFormState {
   profileImage: string | null;
   walletAddress: string;
@@ -13,9 +16,6 @@ export interface CreateAccountFormState {
   termsAccepted: boolean;
 }
 
-/**
- * Validation errors for the create account form
- */
 export interface CreateAccountErrors {
   walletAddress: string;
   username: string;
@@ -23,9 +23,6 @@ export interface CreateAccountErrors {
   profileImage: string;
 }
 
-/**
- * Return type for the useCreateAccount hook
- */
 export interface UseCreateAccountReturn {
   // Form state
   formState: CreateAccountFormState;
@@ -41,16 +38,15 @@ export interface UseCreateAccountReturn {
 
   // Actions
   pickImage: () => Promise<void>;
-  createAccount: () => void;
+  createAccount: () => Promise<void>;
   resetSuccess: () => void;
 
   // Validation
   isFormValid: () => boolean;
 }
 
-/**
- * Initial form state
- */
+// ─── Initial state ────────────────────────────────────────────────────────────
+
 const initialFormState: CreateAccountFormState = {
   profileImage: null,
   walletAddress: '',
@@ -59,9 +55,6 @@ const initialFormState: CreateAccountFormState = {
   termsAccepted: false,
 };
 
-/**
- * Initial errors state
- */
 const initialErrors: CreateAccountErrors = {
   walletAddress: '',
   username: '',
@@ -69,9 +62,11 @@ const initialErrors: CreateAccountErrors = {
   profileImage: '',
 };
 
+// ─── Pure helpers ─────────────────────────────────────────────────────────────
+
 /**
- * Validates a Stellar wallet address
- * Stellar wallet addresses start with G and are 56 characters long
+ * Validates a Stellar wallet address.
+ * Stellar addresses start with G and are 56 characters long.
  */
 export const validateWalletAddress = (address: string): boolean => {
   const stellarPattern = /^G[A-Z0-9]{55}$/;
@@ -79,92 +74,110 @@ export const validateWalletAddress = (address: string): boolean => {
 };
 
 /**
- * Cleans username input to only allow alphanumeric characters and underscores
+ * Strips characters that are not alphanumeric or underscores.
  */
 export const cleanUsername = (text: string): string => {
   return text.replace(/[^a-zA-Z0-9_]/g, '');
 };
 
-/**
- * Validates image file size (must be less than 2MB)
- */
 const validateImageSize = async (uri: string): Promise<boolean> => {
   try {
     const response = await fetch(uri);
     const blob = await response.blob();
-    const sizeInMB = blob.size / (1024 * 1024);
-    return sizeInMB <= 2;
+    return blob.size / (1024 * 1024) <= 2;
   } catch {
     return false;
   }
 };
 
-/**
- * Validates image file type (must be JPG, PNG, or WebP)
- */
 const validateImageType = async (uri: string): Promise<boolean> => {
   try {
     const response = await fetch(uri);
     const blob = await response.blob();
-    const blobType = blob.type.toLowerCase();
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    return validTypes.includes(blobType);
+    return validTypes.includes(blob.type.toLowerCase());
   } catch {
     return false;
   }
 };
 
 /**
- * Custom hook for Create Account functionality
- * Handles all form state, validation, and account creation logic
+ * Signs a nonce with the given Stellar wallet address.
+ *
+ * NOTE: Stellar transaction signing requires access to the wallet's secret key
+ * or a browser-extension wallet such as Freighter. The exact signing mechanism
+ * depends on the wallet integration chosen for this app.
+ *
+ * Current implementation: returns the nonce string as a placeholder signature
+ * so the rest of the auth flow can be developed and tested end-to-end. Replace
+ * this function with the real signing logic once the wallet SDK is integrated
+ * (e.g. Freighter's signTransaction / signMessage, or StellarSdk.Keypair).
+ *
+ * @param walletAddress - The public Stellar wallet address (G…)
+ * @param nonce         - The nonce string returned by POST /auth/nonce
+ * @returns             - A signature string to send to POST /auth/verify
  */
-export const useCreateAccount = (): UseCreateAccountReturn => {
+async function signNonce(walletAddress: string, nonce: string): Promise<string> {
+  // TODO: replace with real wallet signing logic.
+  // Example using Freighter:
+  //   import { signMessage } from '@stellar/freighter-api';
+  //   return signMessage(nonce, walletAddress);
+  return nonce;
+}
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
+export const useCreateAccount = (
+  onSuccess?: () => void
+): UseCreateAccountReturn => {
   const [formState, setFormState] = useState<CreateAccountFormState>(initialFormState);
   const [errors, setErrors] = useState<CreateAccountErrors>(initialErrors);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Field change handlers
+  // ── Field handlers ──────────────────────────────────────────────────────────
+
   const handleWalletAddressChange = useCallback((text: string) => {
     setFormState((prev) => ({ ...prev, walletAddress: text }));
-
-    if (text && !validateWalletAddress(text)) {
-      setErrors((prev) => ({ ...prev, walletAddress: 'Invalid Stellar wallet address format' }));
-    } else {
-      setErrors((prev) => ({ ...prev, walletAddress: '' }));
-    }
+    setErrors((prev) => ({
+      ...prev,
+      walletAddress:
+        text && !validateWalletAddress(text) ? 'Invalid Stellar wallet address format' : '',
+    }));
   }, []);
 
   const handleUsernameChange = useCallback((text: string) => {
-    const cleanedText = cleanUsername(text);
-    setFormState((prev) => ({ ...prev, username: cleanedText }));
-
-    if (cleanedText.length > 0 && cleanedText.length < 3) {
-      setErrors((prev) => ({ ...prev, username: 'Username must be at least 3 characters' }));
-    } else {
-      setErrors((prev) => ({ ...prev, username: '' }));
-    }
+    const cleaned = cleanUsername(text);
+    setFormState((prev) => ({ ...prev, username: cleaned }));
+    setErrors((prev) => ({
+      ...prev,
+      username:
+        cleaned.length > 0 && cleaned.length < 3
+          ? 'Username must be at least 3 characters'
+          : '',
+    }));
   }, []);
 
   const handleDisplayNameChange = useCallback((text: string) => {
     setFormState((prev) => ({ ...prev, displayName: text }));
-
-    if (text.length > 0 && text.length < 2) {
-      setErrors((prev) => ({ ...prev, displayName: 'Display name must be at least 2 characters' }));
-    } else {
-      setErrors((prev) => ({ ...prev, displayName: '' }));
-    }
+    setErrors((prev) => ({
+      ...prev,
+      displayName:
+        text.length > 0 && text.length < 2
+          ? 'Display name must be at least 2 characters'
+          : '',
+    }));
   }, []);
 
   const handleTermsAcceptedChange = useCallback((accepted: boolean) => {
     setFormState((prev) => ({ ...prev, termsAccepted: accepted }));
   }, []);
 
-  // Image picking with validation
+  // ── Image picker ────────────────────────────────────────────────────────────
+
   const pickImage = useCallback(async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (permissionResult.granted === false) {
+    if (!permissionResult.granted) {
       Alert.alert('Permission Required', 'Permission to access camera roll is required!');
       return;
     }
@@ -176,42 +189,31 @@ export const useCreateAccount = (): UseCreateAccountReturn => {
       quality: 0.8,
     });
 
-    if (!result.canceled && result.assets && result.assets[0]) {
+    if (!result.canceled && result.assets?.[0]) {
       const imageUri = result.assets[0].uri;
-
       try {
-        // Validate file size
-        const isSizeValid = await validateImageSize(imageUri);
-        if (!isSizeValid) {
+        if (!(await validateImageSize(imageUri))) {
           setErrors((prev) => ({ ...prev, profileImage: 'File size must be less than 2MB' }));
           return;
         }
-
-        // Validate file type
-        const isTypeValid = await validateImageType(imageUri);
-        if (!isTypeValid) {
+        if (!(await validateImageType(imageUri))) {
           setErrors((prev) => ({
             ...prev,
             profileImage: 'Only JPG, PNG, and WebP formats are allowed',
           }));
           return;
         }
-
-        // All validations passed
         setErrors((prev) => ({ ...prev, profileImage: '' }));
         setFormState((prev) => ({ ...prev, profileImage: imageUri }));
-      } catch (error) {
-        console.error('Error processing image:', error);
+      } catch {
         setErrors((prev) => ({ ...prev, profileImage: 'Error processing image' }));
       }
     }
   }, []);
 
-  // Form validation
-  const isFormValid = useCallback((): boolean => {
-    // Profile image is optional, but if there's an error with uploaded image, block submission
-    const hasImageError = errors.profileImage !== '';
+  // ── Validation ──────────────────────────────────────────────────────────────
 
+  const isFormValid = useCallback((): boolean => {
     return (
       formState.walletAddress.trim() !== '' &&
       validateWalletAddress(formState.walletAddress) &&
@@ -221,73 +223,80 @@ export const useCreateAccount = (): UseCreateAccountReturn => {
       errors.walletAddress === '' &&
       errors.username === '' &&
       errors.displayName === '' &&
-      !hasImageError
+      errors.profileImage === ''
     );
   }, [formState, errors]);
 
-  // Account creation handler
-  const createAccount = useCallback(() => {
-    if (isFormValid()) {
-      setIsSubmitting(true);
+  // ── Account creation — real API flow ────────────────────────────────────────
 
-      const accountData = {
-        profileImage: formState.profileImage,
-        walletAddress: formState.walletAddress,
+  const createAccount = useCallback(async () => {
+    if (!isFormValid()) return;
+
+    setIsSubmitting(true);
+    try {
+      // 1. Fetch nonce from the backend
+      const { nonce, expiresAt } = await fetchNonce(formState.walletAddress);
+
+      // Validate nonce expiry client-side
+      if (new Date(expiresAt) <= new Date()) {
+        Alert.alert('Session Expired', 'The authentication nonce has expired. Please try again.');
+        return;
+      }
+
+      // 2. Sign the nonce with the wallet
+      const signature = await signNonce(formState.walletAddress, nonce);
+
+      // 3. Verify signature — registers or logs in the user
+      const { accessToken, refreshToken } = await verifySignature({
+        wallet: formState.walletAddress,
+        nonce,
+        signature,
+      });
+
+      // 4. Persist tokens securely
+      await saveAccessToken(accessToken);
+      await saveRefreshToken(refreshToken);
+
+      // 5. Sync profile data with the backend
+      await updateMe({
         username: formState.username,
         displayName: formState.displayName,
-        termsAccepted: formState.termsAccepted,
-      };
+        profileImage: formState.profileImage,
+      });
 
-      console.log('✅ Account Created Successfully:', accountData);
-
-      // Show success notification
+      // 6. Show success banner, then navigate
       setShowSuccess(true);
-
-      // Simulate account creation delay
       setTimeout(() => {
-        setIsSubmitting(false);
-
-        Alert.alert(
-          '✅ Account Created!',
-          `Welcome, ${formState.displayName}!\n\nYour account has been created successfully.\n\nUsername: @${formState.username}\nWallet: ${formState.walletAddress.substring(0, 10)}...`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setShowSuccess(false);
-                console.log('Account creation confirmed');
-              },
-            },
-          ]
-        );
-      }, 500);
+        setShowSuccess(false);
+        onSuccess?.();
+      }, 1200);
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : 'Something went wrong. Please check your connection and try again.';
+      Alert.alert('Account Creation Failed', message);
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [isFormValid, formState]);
+  }, [isFormValid, formState, onSuccess]);
 
-  // Reset success state
-  const resetSuccess = useCallback(() => {
-    setShowSuccess(false);
-  }, []);
+  // ── Reset ───────────────────────────────────────────────────────────────────
+
+  const resetSuccess = useCallback(() => setShowSuccess(false), []);
 
   return {
-    // Form state
     formState,
     errors,
     isSubmitting,
     showSuccess,
-
-    // Field handlers
     handleWalletAddressChange,
     handleUsernameChange,
     handleDisplayNameChange,
     handleTermsAcceptedChange,
-
-    // Actions
     pickImage,
     createAccount,
     resetSuccess,
-
-    // Validation
     isFormValid,
   };
 };
