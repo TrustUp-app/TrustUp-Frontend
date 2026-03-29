@@ -147,27 +147,29 @@ export const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps)
     if (!isOpen && translateX.value === SCREEN_WIDTH) return null;
 
     return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-            <Animated.View style={[styles.backdrop, animatedBackdropStyle]}>
+        <View className="absolute inset-0" pointerEvents="box-none">
+            {/* Backdrop: absoluteFill + rgba bg kept as style (no Tailwind token for rgba(0,0,0,0.3)) */}
+            <Animated.View className="absolute inset-0" style={[styles.backdropColor, animatedBackdropStyle]}>
                 <BlurView
                     intensity={Platform.OS === 'ios' ? 20 : 40}
                     tint="dark"
-                    style={StyleSheet.absoluteFill}
+                    className="absolute inset-0"
                 >
-                    <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+                    <Pressable className="absolute inset-0" onPress={onClose} />
                 </BlurView>
             </Animated.View>
 
-            <Animated.View style={[styles.panel, animatedPanelStyle]}>
-                <View className="flex-1 bg-white" style={styles.panelInner}>
+            {/* Panel: width is dynamic (88% of screen), must remain as style */}
+            <Animated.View className="absolute right-0 top-0 bottom-0" style={[{ width: PANEL_WIDTH }, animatedPanelStyle]}>
+                <View className="flex-1 bg-white rounded-tl-3xl rounded-bl-3xl" style={styles.panelShadow}>
                     {/* Header */}
                     <View className="flex-row items-center justify-between px-6 pb-4 pt-8">
-                        <Text className="text-2xl font-bold" style={{ color: colors.primary }}>
+                        <Text className="text-2xl font-bold text-primary">
                             Notifications
                         </Text>
                         <View className="flex-row items-center gap-3">
                             <TouchableOpacity onPress={handleMarkAllAsRead}>
-                                <Text className="text-sm font-bold" style={{ color: colors.cta }}>
+                                <Text className="text-sm font-bold text-cta">
                                     Mark all read
                                 </Text>
                             </TouchableOpacity>
@@ -190,23 +192,21 @@ export const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps)
                                         key={item.id}
                                         className="flex-row items-start px-4 py-4"
                                         style={{
+                                            // Dynamic unread bg has no Tailwind token (#FFFAF8)
                                             backgroundColor: !item.isRead ? '#FFFAF8' : 'white',
                                         }}
                                     >
                                         {/* Unread dot */}
                                         <View className="w-5 items-center pt-3">
                                             {!item.isRead && (
-                                                <View
-                                                    className="h-2 w-2 rounded-full"
-                                                    style={{ backgroundColor: colors.cta }}
-                                                />
+                                                <View className="h-2 w-2 rounded-full bg-cta" />
                                             )}
                                             {item.isRead && (item.type !== 'security' && item.type !== 'reputation') && (
                                                 <View className="h-2 w-2 rounded-full bg-gray-300" />
                                             )}
                                         </View>
 
-                                        {/* Icon Container */}
+                                        {/* Icon Container: bg is dynamic per type, must remain as style */}
                                         <View
                                             className="h-10 w-10 items-center justify-center rounded-full"
                                             style={{ backgroundColor: iconConfig.bg }}
@@ -216,10 +216,7 @@ export const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps)
 
                                         {/* Content */}
                                         <View className="flex-1 px-3">
-                                            <Text
-                                                className="text-[15px] font-bold"
-                                                style={{ color: colors.textStrong }}
-                                            >
+                                            <Text className="text-[15px] font-bold text-textStrong">
                                                 {item.title}
                                             </Text>
                                             <Text className="mt-0.5 text-[13px] leading-4 text-textSecondary">
@@ -258,20 +255,12 @@ export const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps)
 };
 
 const styles = StyleSheet.create({
-    backdrop: {
-        ...StyleSheet.absoluteFillObject,
+    // rgba(0,0,0,0.3) has no Tailwind equivalent — kept as minimal style object
+    backdropColor: {
         backgroundColor: 'rgba(0, 0, 0, 0.3)',
     },
-    panel: {
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        bottom: 0,
-        width: PANEL_WIDTH,
-    },
-    panelInner: {
-        borderTopLeftRadius: 24,
-        borderBottomLeftRadius: 24,
+    // Shadow props have no NativeWind equivalent in RN — kept as minimal style object
+    panelShadow: {
         shadowColor: '#000',
         shadowOffset: { width: -4, height: 0 },
         shadowOpacity: 0.1,
