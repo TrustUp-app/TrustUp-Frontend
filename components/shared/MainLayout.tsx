@@ -22,10 +22,12 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         keyboardVerticalOffset={60}
       >
         <View className="flex-1 pb-[60px]">
-          <Header
-            onNotificationsPress={() => setIsNotificationsOpen(true)}
-            onSettingsPress={() => setIsSettingsOpen(true)}
-          />
+          {!isSettingsOpen && (
+            <Header
+              onNotificationsPress={() => setIsNotificationsOpen(true)}
+              onSettingsPress={() => setIsSettingsOpen(true)}
+            />
+          )}
           <ScrollView
             contentContainerClassName="flex-grow"
             className="flex-1"
@@ -34,9 +36,11 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
             {children}
           </ScrollView>
         </View>
-        <View className="absolute left-0 right-0 bottom-0 h-[60px] bg-transparent z-10">
-          <BottomBar activeTab={activeTab} setActiveTab={setActiveTab} />
-        </View>
+        {!isSettingsOpen && (
+          <View className="absolute left-0 right-0 bottom-0 h-[60px] bg-transparent z-10">
+            <BottomBar activeTab={activeTab} setActiveTab={setActiveTab} />
+          </View>
+        )}
 
         {/* Settings Overlay */}
         {isSettingsOpen && (
