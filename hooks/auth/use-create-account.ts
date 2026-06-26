@@ -2,6 +2,12 @@ import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
+import { authApi } from '../../api/auth';
+import { usersApi } from '../../api/users';
+import { ApiError } from '../../api/httpClient';
+import { setTokens } from '../../auth/tokenStore';
+import { signNonceWithWallet, buildVerifyPayload } from '../../auth/signing';
+
 /**
  * Form field state for the create account form
  */
@@ -41,16 +47,13 @@ export interface UseCreateAccountReturn {
 
   // Actions
   pickImage: () => Promise<void>;
-  createAccount: () => void;
+  createAccount: () => Promise<void>;
   resetSuccess: () => void;
 
   // Validation
   isFormValid: () => boolean;
 }
 
-/**
- * Initial form state
- */
 const initialFormState: CreateAccountFormState = {
   profileImage: null,
   walletAddress: '',
@@ -59,9 +62,6 @@ const initialFormState: CreateAccountFormState = {
   termsAccepted: false,
 };
 
-/**
- * Initial errors state
- */
 const initialErrors: CreateAccountErrors = {
   walletAddress: '',
   username: '',
@@ -114,17 +114,12 @@ const validateImageType = async (uri: string): Promise<boolean> => {
   }
 };
 
-/**
- * Custom hook for Create Account functionality
- * Handles all form state, validation, and account creation logic
- */
 export const useCreateAccount = (): UseCreateAccountReturn => {
   const [formState, setFormState] = useState<CreateAccountFormState>(initialFormState);
   const [errors, setErrors] = useState<CreateAccountErrors>(initialErrors);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Field change handlers
   const handleWalletAddressChange = useCallback((text: string) => {
     setFormState((prev) => ({ ...prev, walletAddress: text }));
 
@@ -160,7 +155,6 @@ export const useCreateAccount = (): UseCreateAccountReturn => {
     setFormState((prev) => ({ ...prev, termsAccepted: accepted }));
   }, []);
 
-  // Image picking with validation
   const pickImage = useCallback(async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -180,14 +174,12 @@ export const useCreateAccount = (): UseCreateAccountReturn => {
       const imageUri = result.assets[0].uri;
 
       try {
-        // Validate file size
         const isSizeValid = await validateImageSize(imageUri);
         if (!isSizeValid) {
           setErrors((prev) => ({ ...prev, profileImage: 'File size must be less than 2MB' }));
           return;
         }
 
-        // Validate file type
         const isTypeValid = await validateImageType(imageUri);
         if (!isTypeValid) {
           setErrors((prev) => ({
@@ -197,19 +189,15 @@ export const useCreateAccount = (): UseCreateAccountReturn => {
           return;
         }
 
-        // All validations passed
         setErrors((prev) => ({ ...prev, profileImage: '' }));
         setFormState((prev) => ({ ...prev, profileImage: imageUri }));
-      } catch (error) {
-        console.error('Error processing image:', error);
+      } catch {
         setErrors((prev) => ({ ...prev, profileImage: 'Error processing image' }));
       }
     }
   }, []);
 
-  // Form validation
   const isFormValid = useCallback((): boolean => {
-    // Profile image is optional, but if there's an error with uploaded image, block submission
     const hasImageError = errors.profileImage !== '';
 
     return (
@@ -225,69 +213,75 @@ export const useCreateAccount = (): UseCreateAccountReturn => {
     );
   }, [formState, errors]);
 
-  // Account creation handler
-  const createAccount = useCallback(() => {
-    if (isFormValid()) {
-      setIsSubmitting(true);
+  const createAccount = useCallback(async () => {
+    if (!isFormValid()) return;
 
-      const accountData = {
-        profileImage: formState.profileImage,
+    setIsSubmitting(true);
+    setShowSuccess(false);
+
+    try {
+      // 1) Nonce
+      const nonceRes = await authApi.requestNonce(formState.walletAddress);
+      const nonce = nonceRes.nonce;
+
+      // 2) Sign + verify
+      const signature = await signNonceWithWallet(formState.walletAddress, nonce);
+      const verifyPayload = buildVerifyPayload({
+        wallet: formState.walletAddress,
+        nonce,
+        signature,
+      });
+
+      const verifyRes = await authApi.verify(await verifyPayload);
+
+
+      // Persist tokens
+      await setTokens({
+        accessToken: verifyRes.accessToken,
+        refreshToken: verifyRes.refreshToken,
+      });
+
+      // 3) Update profile
+      await usersApi.updateMe({
         walletAddress: formState.walletAddress,
         username: formState.username,
         displayName: formState.displayName,
-        termsAccepted: formState.termsAccepted,
-      };
+        profileImage: formState.profileImage,
+      });
 
-      console.log('✅ Account Created Successfully:', accountData);
+      await usersApi.getMe();
 
-      // Show success notification
       setShowSuccess(true);
-
-      // Simulate account creation delay
-      setTimeout(() => {
-        setIsSubmitting(false);
-
-        Alert.alert(
-          '✅ Account Created!',
-          `Welcome, ${formState.displayName}!\n\nYour account has been created successfully.\n\nUsername: @${formState.username}\nWallet: ${formState.walletAddress.substring(0, 10)}...`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setShowSuccess(false);
-                console.log('Account creation confirmed');
-              },
-            },
-          ]
-        );
-      }, 500);
+    } catch (e) {
+      const err = e as unknown;
+      const message = err instanceof ApiError ? err.message : 'Failed to create account. Please try again.';
+      Alert.alert('Account creation failed', message);
+      setShowSuccess(false);
+    } finally {
+      setIsSubmitting(false);
     }
   }, [isFormValid, formState]);
 
-  // Reset success state
   const resetSuccess = useCallback(() => {
     setShowSuccess(false);
   }, []);
 
   return {
-    // Form state
     formState,
     errors,
     isSubmitting,
     showSuccess,
 
-    // Field handlers
     handleWalletAddressChange,
     handleUsernameChange,
     handleDisplayNameChange,
     handleTermsAcceptedChange,
 
-    // Actions
     pickImage,
     createAccount,
     resetSuccess,
 
-    // Validation
     isFormValid,
   };
 };
+
