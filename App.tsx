@@ -1,5 +1,5 @@
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import InvestScreen from 'components/pages/InvestScreen';
+import PayScreen from 'components/pages/PayScreen';
 import { MainLayout } from 'components/shared/MainLayout';
 import './global.css';
 
@@ -7,7 +7,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <MainLayout>
-        <InvestScreen />
+        <PayScreen />
       </MainLayout>
     </SafeAreaProvider>
   );
