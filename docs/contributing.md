@@ -22,6 +22,20 @@ cd TrustUp-Frontend
 npm install
 ```
 
+### 3. Configure Environment
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set:
+
+| Variable | Description | Default |
+|---|---|---|
+| `EXPO_PUBLIC_API_URL` | TrustUp API base URL (no trailing slash) | `http://localhost:4000` |
+
+> All `EXPO_PUBLIC_*` variables are embedded at build time by Expo. Restart the dev server after changes.
+
 ### 4. Backend API Setup
 
 This frontend connects to the [TrustUp API](https://github.com/TrustUp-app/TrustUp-API) backend.
@@ -153,6 +167,29 @@ npm run web
 ```
 
 ## Development Workflow
+
+### HTTP Layer
+
+The app uses a pre-configured Axios client with automatic JWT handling.
+
+**Files:**
+- `src/lib/token-storage.ts` — reads/writes access + refresh tokens via `expo-secure-store`
+- `src/lib/api-client.ts` — Axios instance with base URL from `EXPO_PUBLIC_API_URL`
+  - **Request interceptor**: attaches `Authorization: Bearer <token>` header
+  - **Response interceptor**: on 401, calls `POST /auth/refresh`, retries the original request, and queues any concurrent requests; on refresh failure it clears storage
+
+**Service modules** (`src/services/`):
+
+| File | Covers |
+|---|---|
+| `auth.service.ts` | `/auth/*`, `/users/me` |
+| `loans.service.ts` | `/loans/*`, `/reputation/*` |
+| `merchants.service.ts` | `/merchants/*` |
+| `liquidity.service.ts` | `/liquidity/*` |
+| `notifications.service.ts` | `/notifications/*` |
+| `transactions.service.ts` | `/transactions/*` |
+
+All service functions are fully typed — no `any`.
 
 ### Project Structure
 
