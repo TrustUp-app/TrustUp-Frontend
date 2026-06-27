@@ -35,7 +35,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
 
   // Inject callback into children so PayScreen can trigger navigation
   const enhancedChildren = isValidElement(children)
-    ? cloneElement(children as React.ReactElement<any>, {
+    ? cloneElement(children, {
         onLoanHistoryPress: () => setIsLoanHistoryOpen(true),
       })
     : children;
