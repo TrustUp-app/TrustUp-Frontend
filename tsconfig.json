@@ -6,6 +6,7 @@
     "jsx": "react-native",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "types": ["jest"]
   }
 }

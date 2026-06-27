@@ -47,8 +47,14 @@ export interface UseLoanRepaymentReturn {
  * 2. Sign with connected wallet
  * 3. Submit signed transaction
  *
- * Currently uses simulated delays. Replace the setTimeout
- * blocks with real API calls in production.
+ * @todo Replace each setTimeout block with real API calls:
+ *   Step 1 – POST /loans/{loanId}/pay          → receive unsigned XDR
+ *   Step 2 – Invoke connected wallet to sign XDR
+ *   Step 3 – POST /transactions/submit          → submit signed XDR
+ *
+ * Until the endpoints are available this function uses simulated delays so
+ * that the UI flow can be developed and reviewed. It MUST NOT ship to
+ * production in this state.
  */
 export const useLoanRepayment = (): UseLoanRepaymentReturn => {
   const [paymentStep, setPaymentStep] = useState<PaymentStep>('idle');
@@ -71,25 +77,14 @@ export const useLoanRepayment = (): UseLoanRepaymentReturn => {
     setError(null);
     setPaymentStep('requesting');
 
-    // Step 1: Request unsigned XDR
-    console.log(`POST /loans/${loanId}/pay → requesting unsigned XDR`);
+    // TODO: Step 1 – POST /loans/${loanId}/pay to receive unsigned XDR
     setTimeout(() => {
-      const unsignedXdr = 'AAAA...mock-unsigned-xdr...ZZZZ';
-      console.log('Received unsigned XDR:', unsignedXdr.substring(0, 20) + '…');
-
-      // Step 2: Sign with wallet
+      // TODO: Step 2 – Pass unsignedXdr to the connected wallet for signing
       setPaymentStep('signing');
-      console.log('Requesting wallet signature…');
       setTimeout(() => {
-        const signedXdr = 'BBBB...mock-signed-xdr...YYYY';
-        console.log('Wallet signed XDR:', signedXdr.substring(0, 20) + '…');
-
-        // Step 3: Submit signed transaction
+        // TODO: Step 3 – POST /transactions/submit with the signed XDR
         setPaymentStep('submitting');
-        console.log('POST /transactions/submit');
         setTimeout(() => {
-          // Simulate success (in production, handle API errors here)
-          console.log(`✅ Payment for loan ${loanId} submitted successfully`);
           setPaymentStep('success');
         }, 1200);
       }, 1500);

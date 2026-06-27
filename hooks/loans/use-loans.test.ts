@@ -7,9 +7,6 @@ import {
 } from './use-loans';
 import type { Loan } from '../../types/Loan';
 
-declare var describe: any;
-declare var it: any;
-declare var expect: any;
 
 // ─── Shared fixtures ──────────────────────────────────────────────────────────
 

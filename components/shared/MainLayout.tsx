@@ -1,5 +1,5 @@
+import React, { ReactNode, useState, isValidElement, cloneElement } from 'react';
 import { View, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
-import { ReactNode, useState, isValidElement, cloneElement } from 'react';
 import { BottomBar } from './BottomBar';
 import { Header } from './Header';
 import { NotificationsPanel } from './NotificationsPanel';
@@ -10,6 +10,11 @@ import type { Loan } from '../../types/Loan';
 
 interface MainLayoutProps {
   children: ReactNode;
+}
+
+/** Props injected into the direct child of MainLayout for loan-history navigation. */
+interface PayScreenChildProps {
+  onLoanHistoryPress?: () => void;
 }
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
@@ -35,9 +40,9 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
 
   // Inject callback into children so PayScreen can trigger navigation
   const enhancedChildren = isValidElement(children)
-    ? cloneElement(children, {
-        onLoanHistoryPress: () => setIsLoanHistoryOpen(true),
-      })
+    ? cloneElement(children as React.ReactElement<PayScreenChildProps>, {
+      onLoanHistoryPress: () => setIsLoanHistoryOpen(true),
+    })
     : children;
 
   return (

@@ -280,23 +280,25 @@ export const useLoans = (): UseLoansReturn => {
   const [offset, setOffset] = useState(0);
 
   /**
-   * Simulates fetching loans from the API.
-   * In production, replace with: GET /loans/my-loans?status={status}&limit={limit}&offset={offset}
+   * Fetches loans from the API.
+   *
+   * @todo Replace this placeholder implementation with a real network call:
+   *   GET /loans/my-loans?status={status}&limit={limit}&offset={offset}
+   *
+   * Until the endpoint is available this function returns hardcoded mock data
+   * so that the UI can be developed and reviewed. It MUST NOT ship to
+   * production in this state.
    */
   const fetchLoans = useCallback(
     (status: LoanStatus, pageOffset: number, append: boolean) => {
       setIsLoading(true);
       setError(null);
 
-      // Simulate network delay
+      // TODO: replace with `fetch('/loans/my-loans?...')` once the API is ready.
       setTimeout(() => {
         try {
           const filtered = filterLoansByStatus(MOCK_LOANS, status);
           const page = filtered.slice(pageOffset, pageOffset + PAGE_SIZE);
-
-          console.log(
-            `GET /loans/my-loans?status=${status}&limit=${PAGE_SIZE}&offset=${pageOffset}`
-          );
 
           if (append) {
             setLoans((prev) => [...prev, ...page]);
