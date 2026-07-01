@@ -4,7 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 // Centralized color palette shared with Tailwind
 const colors = require('../../theme/colors.json');
 
-const PayScreen = () => {
+interface PayScreenProps {
+  onLoanHistoryPress?: () => void;
+}
+
+const PayScreen = ({ onLoanHistoryPress }: PayScreenProps) => {
   return (
     <View className="px-6 pt-6">
       {/*Reputation Score Card*/}
@@ -103,6 +107,7 @@ const PayScreen = () => {
 
         <TouchableOpacity
           activeOpacity={0.8}
+          onPress={onLoanHistoryPress}
           className="flex-1 items-center rounded-2xl bg-white p-5 shadow-sm">
           <View className="mb-3 h-12 w-12 items-center justify-center rounded-xl bg-errorSoft">
             <Ionicons name="time-outline" size={24} color={colors.error} />
