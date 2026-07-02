@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@types/jest": "^29.5.14",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.1.10",
     "babel-preset-expo": "^54.0.10",
     "eslint": "^9.25.1",
