@@ -9,7 +9,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { formatLoanAmount, getRepaymentProgress, hasOverdueInstallments } from '../../hooks/loans/use-loans';
+import {
+  formatLoanAmount,
+  getRepaymentProgress,
+  hasOverdueInstallments,
+} from '../../hooks/loans/use-loans';
 import { useLoanRepayment } from '../../hooks/loans/use-loan-repayment';
 import type { Loan, LoanInstallment, LoanStatus } from '../../types/Loan';
 
@@ -66,8 +70,7 @@ const TimelineItem = ({ installment, isLast }: TimelineItemProps) => {
       <View className="mr-4 w-8 items-center">
         <View
           className="h-8 w-8 items-center justify-center rounded-full"
-          style={{ backgroundColor: nodeBg }}
-        >
+          style={{ backgroundColor: nodeBg }}>
           <Ionicons name={iconName} size={18} color={nodeColor} />
         </View>
         {!isLast && (
@@ -87,8 +90,7 @@ const TimelineItem = ({ installment, isLast }: TimelineItemProps) => {
           <Text
             className={`text-sm font-semibold ${
               isPaid ? 'text-textStrong' : isOverdue ? 'text-error' : 'text-textSecondary'
-            }`}
-          >
+            }`}>
             Installment {installment.installmentNumber}
           </Text>
           <Text className="text-base font-bold text-textStrong">
@@ -97,20 +99,14 @@ const TimelineItem = ({ installment, isLast }: TimelineItemProps) => {
         </View>
 
         <View className="mt-1 flex-row items-center justify-between">
-          <Text className="text-xs text-textMuted">
-            Due: {formatDate(installment.dueDate)}
-          </Text>
+          <Text className="text-xs text-textMuted">Due: {formatDate(installment.dueDate)}</Text>
           {isPaid && installment.paidDate && (
             <Text className="text-xs text-successDeep">
               Paid {formatDate(installment.paidDate)}
             </Text>
           )}
-          {isOverdue && (
-            <Text className="text-xs font-semibold text-error">Overdue</Text>
-          )}
-          {isPending && (
-            <Text className="text-xs text-textMuted">Upcoming</Text>
-          )}
+          {isOverdue && <Text className="text-xs font-semibold text-error">Overdue</Text>}
+          {isPending && <Text className="text-xs text-textMuted">Upcoming</Text>}
         </View>
       </View>
     </View>
@@ -133,7 +129,9 @@ const PaymentOverlay = ({ step, stepLabel, error, onDismiss }: PaymentOverlayPro
 
   return (
     <View className="absolute inset-0 z-50 items-center justify-center" style={styles.overlayBg}>
-      <View className="mx-8 w-full max-w-sm items-center rounded-3xl bg-white p-8" style={styles.card}>
+      <View
+        className="mx-8 w-full max-w-sm items-center rounded-3xl bg-white p-8"
+        style={styles.card}>
         {/* Status icon */}
         {isSuccess ? (
           <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-successSoft">
@@ -153,9 +151,7 @@ const PaymentOverlay = ({ step, stepLabel, error, onDismiss }: PaymentOverlayPro
           {isSuccess ? 'Payment Successful!' : isFailed ? 'Payment Failed' : 'Processing Payment'}
         </Text>
 
-        <Text className="mb-6 text-center text-sm text-textSecondary">
-          {error || stepLabel}
-        </Text>
+        <Text className="mb-6 text-center text-sm text-textSecondary">{error || stepLabel}</Text>
 
         {/* Step indicators */}
         {!showDismiss && (
@@ -193,8 +189,7 @@ const PaymentOverlay = ({ step, stepLabel, error, onDismiss }: PaymentOverlayPro
             onPress={onDismiss}
             activeOpacity={0.8}
             className="items-center rounded-xl px-8 py-3"
-            style={{ backgroundColor: isSuccess ? colors.primary : colors.error }}
-          >
+            style={{ backgroundColor: isSuccess ? colors.primary : colors.error }}>
             <Text className="text-sm font-semibold text-white">
               {isSuccess ? 'Done' : 'Try Again'}
             </Text>
@@ -240,16 +235,14 @@ const LoanDetailScreen: React.FC<LoanDetailScreenProps> = ({ loan, onBack }) => 
           paddingHorizontal: 16,
           paddingTop: insets.top + 16,
           paddingBottom: 16,
-        }}
-      >
+        }}>
         <View className="flex-row items-center gap-3">
           <TouchableOpacity
             onPress={onBack}
             activeOpacity={0.7}
             accessibilityLabel="Go back"
             accessibilityRole="button"
-            className="h-10 w-10 items-center justify-center rounded-full border border-border bg-white"
-          >
+            className="h-10 w-10 items-center justify-center rounded-full border border-border bg-white">
             <Ionicons name="chevron-back" size={20} color={colors.text} />
           </TouchableOpacity>
           <Text className="flex-1 text-xl font-bold text-text" numberOfLines={1}>
@@ -266,8 +259,7 @@ const LoanDetailScreen: React.FC<LoanDetailScreenProps> = ({ loan, onBack }) => 
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
         {/* Loan Summary Card */}
         <View className="mb-4 rounded-2xl bg-white p-6 shadow-sm">
           <View className="mb-4 flex-row items-end justify-between">
@@ -328,12 +320,10 @@ const LoanDetailScreen: React.FC<LoanDetailScreenProps> = ({ loan, onBack }) => 
           <View className="mb-4 flex-row items-start gap-3 rounded-2xl bg-errorSoft p-4">
             <Ionicons name="warning" size={20} color={colors.error} />
             <View className="flex-1">
-              <Text className="mb-1 text-sm font-semibold text-error">
-                Overdue Payment Warning
-              </Text>
+              <Text className="mb-1 text-sm font-semibold text-error">Overdue Payment Warning</Text>
               <Text className="text-xs leading-4 text-textSecondary">
-                You have overdue installments. Late payments negatively impact your reputation
-                score and may reduce your available credit limit.
+                You have overdue installments. Late payments negatively impact your reputation score
+                and may reduce your available credit limit.
               </Text>
             </View>
           </View>
@@ -357,9 +347,7 @@ const LoanDetailScreen: React.FC<LoanDetailScreenProps> = ({ loan, onBack }) => 
           <DetailRow label="Loan ID" value={loan.id} />
           <DetailRow label="Merchant" value={loan.merchantName} />
           <DetailRow label="Created" value={formatDate(loan.createdAt)} />
-          {loan.completedAt && (
-            <DetailRow label="Completed" value={formatDate(loan.completedAt)} />
-          )}
+          {loan.completedAt && <DetailRow label="Completed" value={formatDate(loan.completedAt)} />}
           {loan.nextPaymentDue && (
             <DetailRow label="Next Payment" value={formatDate(loan.nextPaymentDue)} />
           )}
@@ -372,17 +360,15 @@ const LoanDetailScreen: React.FC<LoanDetailScreenProps> = ({ loan, onBack }) => 
       {/* Fixed CTA at bottom */}
       {canPay && (
         <View
-          className="absolute right-0 bottom-0 left-0 border-t border-border bg-white px-6 pb-2 pt-4"
-          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
-        >
+          className="absolute bottom-0 left-0 right-0 border-t border-border bg-white px-6 pb-2 pt-4"
+          style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
           <TouchableOpacity
             activeOpacity={0.8}
             className="items-center rounded-xl bg-cta py-4"
             onPress={() => initiatePayment(loan.id)}
             disabled={isProcessing}
             accessibilityLabel="Make a payment"
-            accessibilityRole="button"
-          >
+            accessibilityRole="button">
             <View className="flex-row items-center gap-2">
               <Text className="text-base font-semibold text-white">
                 Pay {formatLoanAmount(loan.nextPaymentAmount!)}

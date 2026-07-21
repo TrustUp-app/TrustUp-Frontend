@@ -1,4 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
+import { Alert } from 'react-native';
+import { apiFetch } from '../../lib/api';
+import { setToken } from '../../lib/auth-storage';
 
 /**
  * Form field state for the sign-in form
@@ -37,6 +40,16 @@ export interface UseSignInReturn {
 }
 
 /**
+ * Auth login response. Accepts either `accessToken` (API docs) or `token`.
+ */
+interface LoginResponse {
+  accessToken?: string;
+  token?: string;
+  refreshToken?: string;
+  expiresIn?: number;
+}
+
+/**
  * Initial form state
  */
 const initialFormState: SignInFormState = {
@@ -54,9 +67,15 @@ const initialErrors: SignInErrors = {
 };
 
 /**
- * Custom hook for managing sign-in form state and validation
+ * Custom hook for managing sign-in form state and validation.
+ *
+ * Calls `POST /auth/login` and persists the returned JWT.
+ * When the backend switches to wallet nonce/verify, replace this handler
+ * while keeping {@link setToken} + session gate in App.
+ *
+ * @param onSuccess Called after a successful sign in (once the token is stored).
  */
-export const useSignIn = (): UseSignInReturn => {
+export const useSignIn = (onSuccess?: () => void): UseSignInReturn => {
   const [formState, setFormState] = useState<SignInFormState>(initialFormState);
   const [errors, setErrors] = useState<SignInErrors>(initialErrors);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -96,21 +115,39 @@ export const useSignIn = (): UseSignInReturn => {
     );
   }, [formState, errors]);
 
-  // Sign-in handler
-  const handleSignIn = useCallback(() => {
+  const handleSignIn = useCallback(async () => {
     if (!isValid) return;
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Sign In Data:', {
-        username: formState.username,
-        password: formState.password,
+    try {
+      const username = formState.username.trim().replace(/^@/, '');
+      const result = await apiFetch<LoginResponse>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          username,
+          password: formState.password,
+        }),
       });
+
+      const token = result.accessToken ?? result.token;
+      if (!token) {
+        throw new Error('No access token returned from /auth/login');
+      }
+
+      await setToken(token);
+      onSuccess?.();
+    } catch (err) {
+      Alert.alert(
+        'Sign in failed',
+        err instanceof Error
+          ? err.message
+          : 'Unable to sign in. Check your credentials and API URL.'
+      );
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
-  }, [isValid, formState]);
+    }
+  }, [isValid, formState.username, formState.password, onSuccess]);
 
   return {
     // Form state

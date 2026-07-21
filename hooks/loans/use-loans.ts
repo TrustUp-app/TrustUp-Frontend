@@ -289,35 +289,32 @@ export const useLoans = (): UseLoansReturn => {
    * so that the UI can be developed and reviewed. It MUST NOT ship to
    * production in this state.
    */
-  const fetchLoans = useCallback(
-    (status: LoanStatus, pageOffset: number, append: boolean) => {
-      setIsLoading(true);
-      setError(null);
+  const fetchLoans = useCallback((status: LoanStatus, pageOffset: number, append: boolean) => {
+    setIsLoading(true);
+    setError(null);
 
-      // TODO: replace with `fetch('/loans/my-loans?...')` once the API is ready.
-      setTimeout(() => {
-        try {
-          const filtered = filterLoansByStatus(MOCK_LOANS, status);
-          const page = filtered.slice(pageOffset, pageOffset + PAGE_SIZE);
+    // TODO: replace with `fetch('/loans/my-loans?...')` once the API is ready.
+    setTimeout(() => {
+      try {
+        const filtered = filterLoansByStatus(MOCK_LOANS, status);
+        const page = filtered.slice(pageOffset, pageOffset + PAGE_SIZE);
 
-          if (append) {
-            setLoans((prev) => [...prev, ...page]);
-          } else {
-            setLoans(page);
-          }
-
-          setHasMore(pageOffset + PAGE_SIZE < filtered.length);
-          setOffset(pageOffset + PAGE_SIZE);
-        } catch (err) {
-          const message = err instanceof Error ? err.message : 'Failed to load loans';
-          setError(message);
-        } finally {
-          setIsLoading(false);
+        if (append) {
+          setLoans((prev) => [...prev, ...page]);
+        } else {
+          setLoans(page);
         }
-      }, 600);
-    },
-    []
-  );
+
+        setHasMore(pageOffset + PAGE_SIZE < filtered.length);
+        setOffset(pageOffset + PAGE_SIZE);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to load loans';
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 600);
+  }, []);
 
   // Change the active status filter and re-fetch from the beginning
   const setActiveFilter = useCallback(

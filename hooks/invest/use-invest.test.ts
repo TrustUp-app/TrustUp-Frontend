@@ -1,9 +1,5 @@
 import { formatCurrency, validateDepositAmount } from './use-invest';
 
-declare var describe: any;
-declare var it: any;
-declare var expect: any;
-
 describe('useInvest utility functions', () => {
   describe('formatCurrency', () => {
     it('returns "0.00" for empty or invalid input', () => {
