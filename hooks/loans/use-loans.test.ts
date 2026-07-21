@@ -7,7 +7,6 @@ import {
 } from './use-loans';
 import type { Loan } from '../../types/Loan';
 
-
 // ─── Shared fixtures ──────────────────────────────────────────────────────────
 
 const makeLoan = (overrides: Partial<Loan>): Loan => ({
@@ -132,8 +131,22 @@ describe('useLoans utility functions', () => {
     it('returns true when at least one installment is overdue', () => {
       const loan = makeLoan({
         installments: [
-          { id: '1', installmentNumber: 1, amount: 50, dueDate: '2026-01-01', paidDate: '2026-01-01', status: 'paid' },
-          { id: '2', installmentNumber: 2, amount: 50, dueDate: '2026-02-01', paidDate: null, status: 'overdue' },
+          {
+            id: '1',
+            installmentNumber: 1,
+            amount: 50,
+            dueDate: '2026-01-01',
+            paidDate: '2026-01-01',
+            status: 'paid',
+          },
+          {
+            id: '2',
+            installmentNumber: 2,
+            amount: 50,
+            dueDate: '2026-02-01',
+            paidDate: null,
+            status: 'overdue',
+          },
         ],
       });
       expect(hasOverdueInstallments(loan)).toBe(true);
@@ -142,8 +155,22 @@ describe('useLoans utility functions', () => {
     it('returns false when no installments are overdue', () => {
       const loan = makeLoan({
         installments: [
-          { id: '1', installmentNumber: 1, amount: 50, dueDate: '2026-01-01', paidDate: '2026-01-01', status: 'paid' },
-          { id: '2', installmentNumber: 2, amount: 50, dueDate: '2026-02-01', paidDate: null, status: 'pending' },
+          {
+            id: '1',
+            installmentNumber: 1,
+            amount: 50,
+            dueDate: '2026-01-01',
+            paidDate: '2026-01-01',
+            status: 'paid',
+          },
+          {
+            id: '2',
+            installmentNumber: 2,
+            amount: 50,
+            dueDate: '2026-02-01',
+            paidDate: null,
+            status: 'pending',
+          },
         ],
       });
       expect(hasOverdueInstallments(loan)).toBe(false);

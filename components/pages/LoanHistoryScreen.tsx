@@ -10,7 +10,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useLoans, formatLoanAmount, getRepaymentProgress, getDueDateLabel } from '../../hooks/loans/use-loans';
+import {
+  useLoans,
+  formatLoanAmount,
+  getRepaymentProgress,
+  getDueDateLabel,
+} from '../../hooks/loans/use-loans';
 import type { Loan, LoanStatus } from '../../types/Loan';
 
 const colors = require('../../theme/colors.json');
@@ -49,8 +54,7 @@ const LoanCard = ({ loan, onPress }: LoanCardProps) => {
       onPress={() => onPress(loan)}
       className="mb-3 rounded-2xl bg-white p-5 shadow-sm"
       accessibilityLabel={`Loan from ${loan.merchantName}, ${formatLoanAmount(loan.amount)}`}
-      accessibilityRole="button"
-    >
+      accessibilityRole="button">
       {/* Top row: merchant + status */}
       <View className="mb-3 flex-row items-center justify-between">
         <View className="flex-1 flex-row items-center gap-2">
@@ -61,15 +65,10 @@ const LoanCard = ({ loan, onPress }: LoanCardProps) => {
             <Text className="text-base font-semibold text-text" numberOfLines={1}>
               {loan.merchantName}
             </Text>
-            <Text className="text-xs text-textMuted">
-              {loan.installmentCount} installments
-            </Text>
+            <Text className="text-xs text-textMuted">{loan.installmentCount} installments</Text>
           </View>
         </View>
-        <View
-          className="rounded-full px-3 py-1"
-          style={{ backgroundColor: statusStyle.bg }}
-        >
+        <View className="rounded-full px-3 py-1" style={{ backgroundColor: statusStyle.bg }}>
           <Text style={{ color: statusStyle.text }} className="text-xs font-semibold">
             {statusStyle.label}
           </Text>
@@ -109,9 +108,7 @@ const LoanCard = ({ loan, onPress }: LoanCardProps) => {
         {loan.nextPaymentDue ? (
           <View className="flex-row items-center gap-1">
             <Ionicons name="time-outline" size={12} color={colors.textMuted} />
-            <Text className="text-xs text-textMuted">
-              {getDueDateLabel(loan.nextPaymentDue)}
-            </Text>
+            <Text className="text-xs text-textMuted">{getDueDateLabel(loan.nextPaymentDue)}</Text>
           </View>
         ) : loan.status === 'completed' ? (
           <View className="flex-row items-center gap-1">
@@ -126,9 +123,18 @@ const LoanCard = ({ loan, onPress }: LoanCardProps) => {
 
 const EmptyState = ({ status }: { status: LoanStatus }) => {
   const messages: Record<LoanStatus, { icon: keyof typeof Ionicons.glyphMap; text: string }> = {
-    active: { icon: 'wallet-outline', text: 'No active loans right now.\nApply for BNPL at a merchant to get started.' },
-    completed: { icon: 'checkmark-done-outline', text: 'No completed loans yet.\nFinish repaying a loan to see it here.' },
-    defaulted: { icon: 'shield-checkmark-outline', text: 'No defaulted loans — great job!\nKeep making payments on time.' },
+    active: {
+      icon: 'wallet-outline',
+      text: 'No active loans right now.\nApply for BNPL at a merchant to get started.',
+    },
+    completed: {
+      icon: 'checkmark-done-outline',
+      text: 'No completed loans yet.\nFinish repaying a loan to see it here.',
+    },
+    defaulted: {
+      icon: 'shield-checkmark-outline',
+      text: 'No defaulted loans — great job!\nKeep making payments on time.',
+    },
     pending: { icon: 'hourglass-outline', text: 'No pending loan applications.' },
   };
 
@@ -139,9 +145,7 @@ const EmptyState = ({ status }: { status: LoanStatus }) => {
       <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-gray-100">
         <Ionicons name={config.icon} size={32} color={colors.textSubtle} />
       </View>
-      <Text className="text-center text-sm leading-5 text-textSecondary">
-        {config.text}
-      </Text>
+      <Text className="text-center text-sm leading-5 text-textSecondary">{config.text}</Text>
     </View>
   );
 };
@@ -155,16 +159,8 @@ interface LoanHistoryScreenProps {
 
 const LoanHistoryScreen: React.FC<LoanHistoryScreenProps> = ({ onBack, onLoanPress }) => {
   const insets = useSafeAreaInsets();
-  const {
-    loans,
-    isLoading,
-    error,
-    hasMore,
-    activeFilter,
-    setActiveFilter,
-    loadMore,
-    refresh,
-  } = useLoans();
+  const { loans, isLoading, error, hasMore, activeFilter, setActiveFilter, loadMore, refresh } =
+    useLoans();
 
   // Fetch initial data on mount
   useEffect(() => {
@@ -190,16 +186,14 @@ const LoanHistoryScreen: React.FC<LoanHistoryScreenProps> = ({ onBack, onLoanPre
           paddingHorizontal: 16,
           paddingTop: insets.top + 16,
           paddingBottom: 0,
-        }}
-      >
+        }}>
         <View className="mb-4 flex-row items-center gap-3">
           <TouchableOpacity
             onPress={onBack}
             activeOpacity={0.7}
             accessibilityLabel="Go back"
             accessibilityRole="button"
-            className="h-10 w-10 items-center justify-center rounded-full border border-border bg-white"
-          >
+            className="h-10 w-10 items-center justify-center rounded-full border border-border bg-white">
             <Ionicons name="chevron-back" size={20} color={colors.text} />
           </TouchableOpacity>
           <Text className="text-xl font-bold text-text">Loan History</Text>
@@ -216,13 +210,11 @@ const LoanHistoryScreen: React.FC<LoanHistoryScreenProps> = ({ onBack, onLoanPre
                 activeOpacity={0.7}
                 className="flex-1 items-center pb-3"
                 accessibilityRole="tab"
-                accessibilityState={{ selected: isActive }}
-              >
+                accessibilityState={{ selected: isActive }}>
                 <Text
                   className={`text-sm font-semibold ${
                     isActive ? 'text-primary' : 'text-textMuted'
-                  }`}
-                >
+                  }`}>
                   {tab.label}
                 </Text>
                 {isActive && (
@@ -240,8 +232,7 @@ const LoanHistoryScreen: React.FC<LoanHistoryScreenProps> = ({ onBack, onLoanPre
         contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
-        scrollEventThrottle={400}
-      >
+        scrollEventThrottle={400}>
         {/* Error banner */}
         {error && (
           <View className="mb-3 flex-row items-center gap-2 rounded-xl bg-errorSoft px-4 py-3">
@@ -266,9 +257,7 @@ const LoanHistoryScreen: React.FC<LoanHistoryScreenProps> = ({ onBack, onLoanPre
         )}
 
         {/* Empty state */}
-        {!isLoading && loans.length === 0 && !error && (
-          <EmptyState status={activeFilter} />
-        )}
+        {!isLoading && loans.length === 0 && !error && <EmptyState status={activeFilter} />}
       </ScrollView>
     </View>
   );
