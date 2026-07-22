@@ -13,6 +13,8 @@ import type { Loan } from '../../types/Loan';
 
 interface MainLayoutProps {
   children: ReactNode;
+  /** Called when the user disconnects the wallet or signs out. */
+  onSignOut?: () => void;
 }
 
 /** Callbacks injected into the direct child of MainLayout for navigation + toasts. */
@@ -23,7 +25,7 @@ interface PayScreenChildProps {
   onToast?: (message: string) => void;
 }
 
-export const MainLayout = ({ children }: MainLayoutProps) => {
+export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
   const [activeTab, setActiveTab] = useState('home');
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -34,6 +36,8 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const { profile, isLoading, error, disconnectWallet, saveProfile } = useProfile();
+
   const handleLoanPress = (loan: Loan) => {
     setSelectedLoan(loan);
     setIsLoanDetailOpen(true);
@@ -42,6 +46,19 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   const handleLoanDetailBack = () => {
     setIsLoanDetailOpen(false);
     setSelectedLoan(null);
+  };
+
+  const handleDisconnect = async () => {
+    await disconnectWallet();
+    setIsProfileOpen(false);
+    setIsSettingsOpen(false);
+    onSignOut?.();
+  };
+
+  const handleSignOut = async () => {
+    await disconnectWallet();
+    setIsSettingsOpen(false);
+    onSignOut?.();
   };
 
   // Any full-screen overlay hides the header/bottom bar
@@ -67,8 +84,12 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         <View className="flex-1 pb-[60px]">
           {!hasOverlay && (
             <Header
+              displayName={profile?.displayName}
+              avatarUrl={profile?.avatarUrl}
+              initials={profile ? getInitials(profile.displayName) : undefined}
               onNotificationsPress={() => setIsNotificationsOpen(true)}
               onSettingsPress={() => setIsSettingsOpen(true)}
+              onProfilePress={() => setIsProfileOpen(true)}
             />
           )}
           <ScrollView
@@ -87,7 +108,41 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         {/* Settings Overlay */}
         {isSettingsOpen && (
           <View className="absolute inset-0 z-20">
-            <SettingsScreen onBack={() => setIsSettingsOpen(false)} />
+            <SettingsScreen
+              onBack={() => setIsSettingsOpen(false)}
+              onProfilePress={() => {
+                setIsSettingsOpen(false);
+                setIsProfileOpen(true);
+              }}
+              onSignOut={handleSignOut}
+            />
+          </View>
+        )}
+
+        {/* Profile Overlay */}
+        {isProfileOpen && (
+          <View className="absolute inset-0 z-20">
+            <ProfileScreen
+              profile={profile}
+              isLoading={isLoading}
+              error={error}
+              onBack={() => setIsProfileOpen(false)}
+              onEditPress={() => setIsEditProfileOpen(true)}
+              onDisconnect={handleDisconnect}
+            />
+          </View>
+        )}
+
+        {/* Edit Profile Overlay */}
+        {isEditProfileOpen && (
+          <View className="absolute inset-0 z-30">
+            <EditProfileScreen
+              profile={profile}
+              onBack={() => setIsEditProfileOpen(false)}
+              onSave={async (changes) => {
+                await saveProfile(changes);
+              }}
+            />
           </View>
         )}
 

@@ -188,19 +188,19 @@ const CreateAccountScreen = ({ navigation }: any) => {
       </ScrollView>
 
       {/* Success Notification */}
-        {showSuccess && (
-          <View className="absolute left-6 right-6 top-20 flex-row items-center rounded-xl bg-success p-4 shadow-lg">
-            <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-white">
-              <Ionicons name="checkmark-circle" size={28} color={colors.success} />
-            </View>
-            <View className="flex-1">
-              <Text className="mb-1 text-base font-bold text-white">
-                Account Created Successfully!
-              </Text>
-              <Text className="text-sm text-white">Welcome to TrustUp, @{username}</Text>
-            </View>
+      {showSuccess && (
+        <View className="absolute left-6 right-6 top-20 flex-row items-center rounded-xl bg-success p-4 shadow-lg">
+          <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-white">
+            <Ionicons name="checkmark-circle" size={28} color={colors.success} />
           </View>
-        )}
+          <View className="flex-1">
+            <Text className="mb-1 text-base font-bold text-white">
+              Account Created Successfully!
+            </Text>
+            <Text className="text-sm text-white">Welcome to TrustUp, @{username}</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 };

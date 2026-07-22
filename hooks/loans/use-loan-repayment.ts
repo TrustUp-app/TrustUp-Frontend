@@ -9,13 +9,7 @@ import { useState, useCallback } from 'react';
  * 5. success → payment completed
  * 6. failed → an error occurred at any step
  */
-export type PaymentStep =
-  | 'idle'
-  | 'requesting'
-  | 'signing'
-  | 'submitting'
-  | 'success'
-  | 'failed';
+export type PaymentStep = 'idle' | 'requesting' | 'signing' | 'submitting' | 'success' | 'failed';
 
 /**
  * Human-readable label for each payment step, shown in the UI.
@@ -60,7 +54,8 @@ export const useLoanRepayment = (): UseLoanRepaymentReturn => {
   const [paymentStep, setPaymentStep] = useState<PaymentStep>('idle');
   const [error, setError] = useState<string | null>(null);
 
-  const isProcessing = paymentStep !== 'idle' && paymentStep !== 'success' && paymentStep !== 'failed';
+  const isProcessing =
+    paymentStep !== 'idle' && paymentStep !== 'success' && paymentStep !== 'failed';
 
   const stepLabel = PAYMENT_STEP_LABELS[paymentStep];
 

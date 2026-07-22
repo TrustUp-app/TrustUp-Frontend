@@ -9,12 +9,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { User, Lock, Eye, EyeOff, Wallet, ArrowRight } from 'lucide-react-native';
 import { useSignIn } from '../../hooks/auth/use-sign-in';
 
-export default function SignInScreen() {
+interface SignInScreenProps {
+  onSignInSuccess?: () => void;
+}
+
+export default function SignInScreen({ onSignInSuccess }: SignInScreenProps) {
   const {
     formState,
     isValid,
@@ -22,7 +25,7 @@ export default function SignInScreen() {
     handlePasswordChange,
     toggleSecureText,
     handleSignIn,
-  } = useSignIn();
+  } = useSignIn(onSignInSuccess);
 
   return (
     <KeyboardAvoidingView
