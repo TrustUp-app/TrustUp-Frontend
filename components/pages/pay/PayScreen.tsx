@@ -6,13 +6,13 @@ import {
   getCreditUsageRatio,
   getInstallmentProgress,
   MIN_ELIGIBLE_SCORE,
-} from '../../hooks/pay/use-pay-screen';
-import { formatLoanAmount, getDueDateLabel } from '../../hooks/loans/use-loans';
-import { repayLoan } from '../../services/loans.service';
-import { ApiClientError } from '../../lib/api-client';
-import { PayConfirmationSheet } from './pay/PayConfirmationSheet';
+} from '../../../hooks/pay/use-pay-screen';
+import { formatLoanAmount, getDueDateLabel } from '../../../hooks/loans/use-loans';
+import { repayLoan } from '../../../services/loans.service';
+import { ApiClientError } from '../../../lib/api-client';
+import { PayConfirmationSheet } from './PayConfirmationSheet';
 // Centralized color palette shared with Tailwind
-const colors = require('../../theme/colors.json');
+const colors = require('../../../theme/colors.json');
 
 interface PayScreenProps {
   onLoanHistoryPress?: () => void;
