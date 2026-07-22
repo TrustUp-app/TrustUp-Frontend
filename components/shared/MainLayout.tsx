@@ -3,12 +3,12 @@ import { View, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from '
 import { BottomBar } from './BottomBar';
 import { Header } from './Header';
 import { NotificationsPanel } from './NotificationsPanel';
+import { Toast } from './Toast';
 import SettingsScreen from '../pages/SettingsScreen';
 import LoanHistoryScreen from '../pages/LoanHistoryScreen';
 import LoanDetailScreen from '../pages/LoanDetailScreen';
-import ProfileScreen from '../pages/ProfileScreen';
-import EditProfileScreen from '../pages/EditProfileScreen';
-import { useProfile, getInitials } from '../../hooks/profile/use-profile';
+import ReputationScreen from '../pages/ReputationScreen';
+import MerchantsScreen from '../pages/MerchantsScreen';
 import type { Loan } from '../../types/Loan';
 
 interface MainLayoutProps {
@@ -17,9 +17,12 @@ interface MainLayoutProps {
   onSignOut?: () => void;
 }
 
-/** Props injected into the direct child of MainLayout for loan-history navigation. */
+/** Callbacks injected into the direct child of MainLayout for navigation + toasts. */
 interface PayScreenChildProps {
   onLoanHistoryPress?: () => void;
+  onViewReputationPress?: () => void;
+  onExploreMerchantsPress?: () => void;
+  onToast?: (message: string) => void;
 }
 
 export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
@@ -28,9 +31,10 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLoanHistoryOpen, setIsLoanHistoryOpen] = useState(false);
   const [isLoanDetailOpen, setIsLoanDetailOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isReputationOpen, setIsReputationOpen] = useState(false);
+  const [isMerchantsOpen, setIsMerchantsOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const { profile, isLoading, error, disconnectWallet, saveProfile } = useProfile();
 
@@ -59,12 +63,15 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
 
   // Any full-screen overlay hides the header/bottom bar
   const hasOverlay =
-    isSettingsOpen || isLoanHistoryOpen || isLoanDetailOpen || isProfileOpen || isEditProfileOpen;
+    isSettingsOpen || isLoanHistoryOpen || isLoanDetailOpen || isReputationOpen || isMerchantsOpen;
 
-  // Inject callback into children so PayScreen can trigger navigation
+  // Inject callbacks into children so PayScreen can trigger navigation
   const enhancedChildren = isValidElement(children)
     ? cloneElement(children as React.ReactElement<PayScreenChildProps>, {
         onLoanHistoryPress: () => setIsLoanHistoryOpen(true),
+        onViewReputationPress: () => setIsReputationOpen(true),
+        onExploreMerchantsPress: () => setIsMerchantsOpen(true),
+        onToast: (message: string) => setToastMessage(message),
       })
     : children;
 
@@ -156,12 +163,34 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
           </View>
         )}
 
+        {/* Reputation Overlay */}
+        {isReputationOpen && (
+          <View className="absolute inset-0 z-20">
+            <ReputationScreen onBack={() => setIsReputationOpen(false)} />
+          </View>
+        )}
+
+        {/* Merchants Overlay */}
+        {isMerchantsOpen && (
+          <View className="absolute inset-0 z-20">
+            <MerchantsScreen onBack={() => setIsMerchantsOpen(false)} />
+          </View>
+        )}
+
         {/* Notifications Overlay */}
         <NotificationsPanel
           isOpen={isNotificationsOpen}
           onClose={() => setIsNotificationsOpen(false)}
         />
       </KeyboardAvoidingView>
+
+      {/* App-level toast host (outside the ScrollView so it pins to the viewport) */}
+      <Toast
+        visible={toastMessage !== null}
+        message={toastMessage ?? ''}
+        type="success"
+        onHide={() => setToastMessage(null)}
+      />
     </SafeAreaView>
   );
 };
