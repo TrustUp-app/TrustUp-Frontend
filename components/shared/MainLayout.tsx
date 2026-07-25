@@ -9,6 +9,9 @@ import LoanHistoryScreen from '../pages/LoanHistoryScreen';
 import LoanDetailScreen from '../pages/LoanDetailScreen';
 import ReputationScreen from '../pages/ReputationScreen';
 import MerchantsScreen from '../pages/MerchantsScreen';
+import ProfileScreen from '../pages/ProfileScreen';
+import EditProfileScreen from '../pages/EditProfileScreen';
+import { useProfile, getInitials } from '../../hooks/profile/use-profile';
 import type { Loan } from '../../types/Loan';
 
 interface MainLayoutProps {
@@ -33,6 +36,8 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
   const [isLoanDetailOpen, setIsLoanDetailOpen] = useState(false);
   const [isReputationOpen, setIsReputationOpen] = useState(false);
   const [isMerchantsOpen, setIsMerchantsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -63,7 +68,13 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
 
   // Any full-screen overlay hides the header/bottom bar
   const hasOverlay =
-    isSettingsOpen || isLoanHistoryOpen || isLoanDetailOpen || isReputationOpen || isMerchantsOpen;
+    isSettingsOpen ||
+    isLoanHistoryOpen ||
+    isLoanDetailOpen ||
+    isReputationOpen ||
+    isMerchantsOpen ||
+    isProfileOpen ||
+    isEditProfileOpen;
 
   // Inject callbacks into children so PayScreen can trigger navigation
   const enhancedChildren = isValidElement(children)
