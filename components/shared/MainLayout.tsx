@@ -9,10 +9,12 @@ import LoanHistoryScreen from '../pages/LoanHistoryScreen';
 import LoanDetailScreen from '../pages/LoanDetailScreen';
 import ReputationScreen from '../pages/ReputationScreen';
 import MerchantsScreen from '../pages/MerchantsScreen';
+import MerchantDetailScreen from '../pages/MerchantDetailScreen';
 import ProfileScreen from '../pages/ProfileScreen';
 import EditProfileScreen from '../pages/EditProfileScreen';
 import { useProfile, getInitials } from '../../hooks/profile/use-profile';
 import type { Loan } from '../../types/Loan';
+import type { MerchantSummary } from '../../types/api';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -36,9 +38,11 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
   const [isLoanDetailOpen, setIsLoanDetailOpen] = useState(false);
   const [isReputationOpen, setIsReputationOpen] = useState(false);
   const [isMerchantsOpen, setIsMerchantsOpen] = useState(false);
+  const [isMerchantDetailOpen, setIsMerchantDetailOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
+  const [selectedMerchant, setSelectedMerchant] = useState<MerchantSummary | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const { profile, isLoading, error, disconnectWallet, saveProfile } = useProfile();
@@ -51,6 +55,25 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
   const handleLoanDetailBack = () => {
     setIsLoanDetailOpen(false);
     setSelectedLoan(null);
+  };
+
+  const handleMerchantPress = (merchant: MerchantSummary) => {
+    setSelectedMerchant(merchant);
+    setIsMerchantDetailOpen(true);
+  };
+
+  const handleMerchantDetailBack = () => {
+    setIsMerchantDetailOpen(false);
+    setSelectedMerchant(null);
+  };
+
+  // No dedicated loan-application screen exists yet — return to the base
+  // screen (where the BNPL purchase flow lives) and confirm the selection.
+  const handleStartPurchase = (merchant: MerchantSummary) => {
+    setIsMerchantDetailOpen(false);
+    setIsMerchantsOpen(false);
+    setSelectedMerchant(null);
+    setToastMessage(`Selected ${merchant.name} — continue your BNPL purchase below`);
   };
 
   const handleDisconnect = async () => {
@@ -73,6 +96,7 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
     isLoanDetailOpen ||
     isReputationOpen ||
     isMerchantsOpen ||
+    isMerchantDetailOpen ||
     isProfileOpen ||
     isEditProfileOpen;
 
@@ -184,7 +208,21 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
         {/* Merchants Overlay */}
         {isMerchantsOpen && (
           <View className="absolute inset-0 z-20">
-            <MerchantsScreen onBack={() => setIsMerchantsOpen(false)} />
+            <MerchantsScreen
+              onBack={() => setIsMerchantsOpen(false)}
+              onMerchantPress={handleMerchantPress}
+            />
+          </View>
+        )}
+
+        {/* Merchant Detail Overlay */}
+        {isMerchantDetailOpen && selectedMerchant && (
+          <View className="absolute inset-0 z-30">
+            <MerchantDetailScreen
+              merchant={selectedMerchant}
+              onBack={handleMerchantDetailBack}
+              onStartPurchasePress={handleStartPurchase}
+            />
           </View>
         )}
 
