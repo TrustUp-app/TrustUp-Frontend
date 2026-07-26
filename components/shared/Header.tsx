@@ -8,6 +8,7 @@ interface HeaderProps {
   displayName?: string;
   avatarUrl?: string | null;
   initials?: string;
+  unreadNotificationsCount?: number;
   onNotificationsPress?: () => void;
   onSettingsPress?: () => void;
   onProfilePress?: () => void;
@@ -28,6 +29,7 @@ export const Header = ({
   displayName,
   avatarUrl,
   initials,
+  unreadNotificationsCount = 0,
   onNotificationsPress,
   onSettingsPress,
   onProfilePress,
@@ -60,8 +62,17 @@ export const Header = ({
           <TouchableOpacity
             activeOpacity={0.7}
             className="h-10 w-10 items-center justify-center"
-            onPress={onNotificationsPress}>
+            onPress={onNotificationsPress}
+            accessibilityLabel="Open Notifications"
+            accessibilityRole="button">
             <Ionicons name="notifications-outline" size={24} color={colors.text} />
+            {unreadNotificationsCount > 0 && (
+              <View className="absolute right-1 top-1 h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1">
+                <Text className="text-[10px] font-bold text-white">
+                  {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
 
           {/* Avatar */}

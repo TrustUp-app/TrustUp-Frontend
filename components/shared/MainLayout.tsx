@@ -9,6 +9,10 @@ import LoanHistoryScreen from '../pages/LoanHistoryScreen';
 import LoanDetailScreen from '../pages/LoanDetailScreen';
 import ReputationScreen from '../pages/ReputationScreen';
 import MerchantsScreen from '../pages/MerchantsScreen';
+import ProfileScreen from '../pages/ProfileScreen';
+import EditProfileScreen from '../pages/EditProfileScreen';
+import { useProfile, getInitials } from '../../hooks/profile/use-profile';
+import { useNotifications } from '../../hooks/notifications/use-notifications';
 import type { Loan } from '../../types/Loan';
 
 interface MainLayoutProps {
@@ -33,10 +37,13 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
   const [isLoanDetailOpen, setIsLoanDetailOpen] = useState(false);
   const [isReputationOpen, setIsReputationOpen] = useState(false);
   const [isMerchantsOpen, setIsMerchantsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const { profile, isLoading, error, disconnectWallet, saveProfile } = useProfile();
+  const { unreadCount } = useNotifications();
 
   const handleLoanPress = (loan: Loan) => {
     setSelectedLoan(loan);
@@ -87,6 +94,7 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
               displayName={profile?.displayName}
               avatarUrl={profile?.avatarUrl}
               initials={profile ? getInitials(profile.displayName) : undefined}
+              unreadNotificationsCount={unreadCount}
               onNotificationsPress={() => setIsNotificationsOpen(true)}
               onSettingsPress={() => setIsSettingsOpen(true)}
               onProfilePress={() => setIsProfileOpen(true)}

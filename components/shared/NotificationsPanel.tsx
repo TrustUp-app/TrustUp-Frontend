@@ -14,69 +14,18 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
+  runOnJS,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
 import { BlurView } from 'expo-blur';
+import { useNotifications } from '../../hooks/notifications/use-notifications';
+import type { NotificationType } from '../../types/Notification';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PANEL_WIDTH = SCREEN_WIDTH * 0.88;
 
 const colors = require('../../theme/colors.json');
-
-type NotificationType = 'payment' | 'credit' | 'merchant' | 'reputation' | 'security';
-
-interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  body: string;
-  timestamp: string;
-  isRead: boolean;
-}
-
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: '1',
-    type: 'payment',
-    title: 'Payment Due Soon',
-    body: "Your $50.00 payment is due in 3 days. Don't miss it!",
-    timestamp: '2 min ago',
-    isRead: false,
-  },
-  {
-    id: '2',
-    type: 'credit',
-    title: 'Credit Increased',
-    body: 'Great news! Your available credit increased to $320.00.',
-    timestamp: '1 hour ago',
-    isRead: false,
-  },
-  {
-    id: '3',
-    type: 'merchant',
-    title: 'New Merchant Available',
-    body: 'TechStore has joined TrustUp. Shop with BNPL now.',
-    timestamp: '3 hours ago',
-    isRead: false,
-  },
-  {
-    id: '4',
-    type: 'reputation',
-    title: 'Reputation Updated',
-    body: 'Your reputation score improved to 82/100. Keep it up!',
-    timestamp: 'Yesterday',
-    isRead: true,
-  },
-  {
-    id: '5',
-    type: 'security',
-    title: 'Terms Updated',
-    body: "We've updated our privacy policy. Tap to review the changes.",
-    timestamp: '3 days ago',
-    isRead: true,
-  },
-];
 
 const getIconConfig = (type: NotificationType) => {
   switch (type) {
@@ -107,20 +56,28 @@ interface NotificationsPanelProps {
 export const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps) => {
   const translateX = useSharedValue(SCREEN_WIDTH);
   const opacity = useSharedValue(0);
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+  const [isMounted, setIsMounted] = useState(isOpen);
+  const { notifications, isLoading, markAsRead, markAllAsRead, deleteNotification } =
+    useNotifications();
 
   useEffect(() => {
     if (isOpen) {
+      setIsMounted(true);
       translateX.value = withTiming(0, {
         duration: 350,
         easing: Easing.out(Easing.exp),
       });
       opacity.value = withTiming(1, { duration: 300 });
     } else {
-      translateX.value = withTiming(SCREEN_WIDTH, {
-        duration: 300,
-        easing: Easing.in(Easing.exp),
-      });
+      // Only unmount once the close animation actually finishes, so a
+      // mid-animation re-render can't cut the slide-out short.
+      translateX.value = withTiming(
+        SCREEN_WIDTH,
+        { duration: 300, easing: Easing.in(Easing.exp) },
+        (finished) => {
+          if (finished) runOnJS(setIsMounted)(false);
+        }
+      );
       opacity.value = withTiming(0, { duration: 250 });
     }
   }, [isOpen, translateX, opacity]);
@@ -131,33 +88,25 @@ export const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps)
 
   const animatedBackdropStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    pointerEvents: isOpen ? 'auto' : 'none',
   }));
 
-  const handleMarkAsRead = (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
-  };
-
-  const handleMarkAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-  };
-
-  const handleDelete = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
-
-  if (!isOpen && translateX.value === SCREEN_WIDTH) return null;
+  if (!isMounted) return null;
 
   return (
     <View className="absolute inset-0" pointerEvents="box-none">
-      {/* Backdrop: absoluteFill + rgba bg kept as style (no Tailwind token for rgba(0,0,0,0.3)) */}
+      {/* Backdrop: absoluteFill + rgba bg kept as style (no Tailwind token for rgba(0,0,0,0.3)).
+          Position is inline (not className) because combining `pointerEvents` as a prop with
+          NativeWind's className on an Animated.View drops the className styles on web,
+          collapsing this to zero height. */}
       <Animated.View
-        className="absolute inset-0"
-        style={[styles.backdropColor, animatedBackdropStyle]}>
+        pointerEvents={isOpen ? 'auto' : 'none'}
+        style={[styles.backdropFill, styles.backdropColor, animatedBackdropStyle]}>
         <BlurView
           intensity={Platform.OS === 'ios' ? 20 : 40}
           tint="dark"
-          className="absolute inset-0">
+          className="absolute inset-0"
+          // BlurView is unreliable on Android — fall back to a plain rgba backdrop there.
+          style={Platform.OS === 'android' ? styles.androidBlurFallback : undefined}>
           <Pressable className="absolute inset-0" onPress={onClose} />
         </BlurView>
       </Animated.View>
@@ -171,7 +120,7 @@ export const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps)
           <View className="flex-row items-center justify-between px-6 pb-4 pt-8">
             <Text className="text-2xl font-bold text-primary">Notifications</Text>
             <View className="flex-row items-center gap-3">
-              <TouchableOpacity onPress={handleMarkAllAsRead}>
+              <TouchableOpacity onPress={markAllAsRead}>
                 <Text className="text-sm font-bold text-cta">Mark all read</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -184,7 +133,19 @@ export const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps)
 
           {/* List */}
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-            {notifications.length > 0 ? (
+            {isLoading ? (
+              <View>
+                {[0, 1, 2, 3].map((key) => (
+                  <View key={key} className="flex-row items-center px-4 py-4">
+                    <View className="h-10 w-10 rounded-full bg-gray-100" />
+                    <View className="flex-1 px-3">
+                      <View className="h-3 w-2/3 rounded bg-gray-100" />
+                      <View className="mt-2 h-3 w-full rounded bg-gray-100" />
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : notifications.length > 0 ? (
               notifications.map((item) => {
                 const iconConfig = getIconConfig(item.type);
                 return (
@@ -222,11 +183,11 @@ export const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps)
                     {/* Actions */}
                     <View className="items-center gap-4 pt-1">
                       {!item.isRead && (
-                        <TouchableOpacity onPress={() => handleMarkAsRead(item.id)}>
+                        <TouchableOpacity onPress={() => markAsRead(item.id)}>
                           <Ionicons name="checkmark" size={20} color={colors.success} />
                         </TouchableOpacity>
                       )}
-                      <TouchableOpacity onPress={() => handleDelete(item.id)}>
+                      <TouchableOpacity onPress={() => deleteNotification(item.id)}>
                         <Ionicons name="trash-outline" size={18} color={colors.error} />
                       </TouchableOpacity>
                     </View>
@@ -237,7 +198,7 @@ export const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps)
               <View className="flex-1 items-center justify-center pt-32">
                 <Ionicons name="notifications-off-outline" size={48} color={colors.textSubtle} />
                 <Text className="mt-4 text-base font-medium text-textSecondary">
-                  All caught up!
+                  No notifications
                 </Text>
               </View>
             )}
@@ -249,9 +210,22 @@ export const NotificationsPanel = ({ isOpen, onClose }: NotificationsPanelProps)
 };
 
 const styles = StyleSheet.create({
+  // Inline (not className) — see comment above the backdrop Animated.View.
+  backdropFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   // rgba(0,0,0,0.3) has no Tailwind equivalent — kept as minimal style object
   backdropColor: {
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  // BlurView's intensity is unreliable on Android — this rgba fallback keeps
+  // the backdrop visibly dimmed even when the native blur doesn't render.
+  androidBlurFallback: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   // Shadow props have no NativeWind equivalent in RN — kept as minimal style object
   panelShadow: {
