@@ -1,5 +1,6 @@
 import React, { ReactNode, useState, isValidElement, cloneElement } from 'react';
-import { View, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomBar } from './BottomBar';
 import { Header } from './Header';
 import { NotificationsPanel } from './NotificationsPanel';
@@ -39,11 +40,11 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
   const [isReputationOpen, setIsReputationOpen] = useState(false);
   const [isMerchantsOpen, setIsMerchantsOpen] = useState(false);
   const [isMerchantDetailOpen, setIsMerchantDetailOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [selectedMerchant, setSelectedMerchant] = useState<MerchantSummary | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   const { profile, isLoading, error, disconnectWallet, saveProfile } = useProfile();
 
@@ -103,19 +104,16 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
   // Inject callbacks into children so PayScreen can trigger navigation
   const enhancedChildren = isValidElement(children)
     ? cloneElement(children as React.ReactElement<PayScreenChildProps>, {
-        onLoanHistoryPress: () => setIsLoanHistoryOpen(true),
-        onViewReputationPress: () => setIsReputationOpen(true),
-        onExploreMerchantsPress: () => setIsMerchantsOpen(true),
-        onToast: (message: string) => setToastMessage(message),
-      })
+      onLoanHistoryPress: () => setIsLoanHistoryOpen(true),
+      onViewReputationPress: () => setIsReputationOpen(true),
+      onExploreMerchantsPress: () => setIsMerchantsOpen(true),
+      onToast: (message: string) => setToastMessage(message),
+    })
     : children;
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={60}>
+    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <View className="flex-1 bg-background">
         <View className="flex-1 pb-[60px]">
           {!hasOverlay && (
             <Header
@@ -127,12 +125,8 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
               onProfilePress={() => setIsProfileOpen(true)}
             />
           )}
-          <ScrollView
-            contentContainerClassName="flex-grow"
-            className="flex-1"
-            keyboardShouldPersistTaps="handled">
-            {enhancedChildren}
-          </ScrollView>
+
+          <View className="flex-1">{enhancedChildren}</View>
         </View>
         {!hasOverlay && (
           <View className="absolute bottom-0 left-0 right-0 z-10 h-[60px] bg-transparent">
@@ -231,15 +225,15 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
           isOpen={isNotificationsOpen}
           onClose={() => setIsNotificationsOpen(false)}
         />
-      </KeyboardAvoidingView>
 
-      {/* App-level toast host (outside the ScrollView so it pins to the viewport) */}
-      <Toast
-        visible={toastMessage !== null}
-        message={toastMessage ?? ''}
-        type="success"
-        onHide={() => setToastMessage(null)}
-      />
+        {/* App-level toast host */}
+        <Toast
+          visible={toastMessage !== null}
+          message={toastMessage ?? ''}
+          type="success"
+          onHide={() => setToastMessage(null)}
+        />
+      </View>
     </SafeAreaView>
   );
 };

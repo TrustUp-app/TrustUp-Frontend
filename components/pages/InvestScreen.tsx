@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useInvest } from '../../hooks/invest/use-invest';
 // Centralized color palette shared with Tailwind
@@ -25,18 +24,19 @@ const InvestScreen = () => {
   } = useInvest();
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+    <View className="flex-1 bg-background">
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
         keyboardVerticalOffset={0}>
         <ScrollView
           ref={scrollViewRef}
-          className="bg-background"
+          className="flex-1 bg-background"
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           contentContainerStyle={{ paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}>
-          <View className="px-6 pb-6 pt-6">
+          <View className="px-6 pb-6 pt-4">
             {/* Page Title */}
             <Text className="mb-6 text-2xl font-bold text-text">Invest in TrustUp</Text>
 
@@ -126,17 +126,13 @@ const InvestScreen = () => {
               <View className="mb-4">
                 <Text className="mb-2 text-sm text-textSubtle">Amount to invest</Text>
                 <TextInput
-                  className="mb-2 text-5xl font-bold text-textStrong"
+                  className="mb-2 w-full text-5xl font-bold text-textStrong"
                   keyboardType="numeric"
-                  value={depositAmount ? `$${depositAmount}` : ''}
+                  value={depositAmount ? `$${formatCurrency(depositAmount)}` : ''}
                   onChangeText={handleAmountChange}
-                  onFocus={() => {
-                    setTimeout(() => {
-                      scrollViewRef.current?.scrollTo({ y: 600, animated: true });
-                    }, 150);
-                  }}
                   placeholder="$0.00"
                   placeholderTextColor={colors.placeholderAlt}
+                  numberOfLines={1}
                   accessibilityLabel="Amount to invest input field"
                   accessibilityHint="Enter the amount you want to invest, minimum $10"
                 />
@@ -145,18 +141,16 @@ const InvestScreen = () => {
 
               {/* Deposit Button */}
               <TouchableOpacity
-                className={`items-center rounded-2xl py-4 ${
-                  isDepositValid() ? 'bg-ctaStrong' : 'bg-cta'
-                }`}
+                className={`items-center rounded-2xl py-4 ${isDepositValid() ? 'bg-ctaStrong' : 'bg-cta'
+                  }`}
                 onPress={handleDeposit}
                 disabled={!isDepositValid()}
                 accessibilityLabel="Deposit funds button"
                 accessibilityState={{ disabled: !isDepositValid() }}
                 accessibilityHint={!isDepositValid() ? 'Minimum $10 required' : undefined}>
                 <Text
-                  className={`text-base font-semibold ${
-                    isDepositValid() ? 'text-white' : 'text-gray-200'
-                  }`}>
+                  className={`text-base font-semibold ${isDepositValid() ? 'text-white' : 'text-gray-200'
+                    }`}>
                   Deposit funds
                 </Text>
               </TouchableOpacity>
@@ -177,7 +171,7 @@ const InvestScreen = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 

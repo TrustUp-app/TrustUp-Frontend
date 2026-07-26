@@ -36,7 +36,7 @@ export const Header = ({
   const firstName = displayName?.trim().split(/\s+/)[0];
 
   return (
-    <View className="bg-white px-6 pb-4 pt-12">
+    <View className="bg-white px-6 pb-4 pt-2">
       <View className="flex-row items-center justify-between">
         {/* Greetings */}
         <Text className="text-xl font-semibold text-text">
