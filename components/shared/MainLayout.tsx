@@ -1,5 +1,6 @@
 import React, { ReactNode, useState, isValidElement, cloneElement } from 'react';
-import { View, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomBar } from './BottomBar';
 import { Header } from './Header';
 import { NotificationsPanel } from './NotificationsPanel';
@@ -14,6 +15,7 @@ import EditProfileScreen from '../pages/EditProfileScreen';
 import { useProfile, getInitials } from '../../hooks/profile/use-profile';
 import { useNotifications } from '../../hooks/notifications/use-notifications';
 import type { Loan } from '../../types/Loan';
+import type { MerchantSummary } from '../../types/api';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -37,9 +39,11 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
   const [isLoanDetailOpen, setIsLoanDetailOpen] = useState(false);
   const [isReputationOpen, setIsReputationOpen] = useState(false);
   const [isMerchantsOpen, setIsMerchantsOpen] = useState(false);
+  const [isMerchantDetailOpen, setIsMerchantDetailOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
+  const [selectedMerchant, setSelectedMerchant] = useState<MerchantSummary | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const { profile, isLoading, error, disconnectWallet, saveProfile } = useProfile();
@@ -53,6 +57,25 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
   const handleLoanDetailBack = () => {
     setIsLoanDetailOpen(false);
     setSelectedLoan(null);
+  };
+
+  const handleMerchantPress = (merchant: MerchantSummary) => {
+    setSelectedMerchant(merchant);
+    setIsMerchantDetailOpen(true);
+  };
+
+  const handleMerchantDetailBack = () => {
+    setIsMerchantDetailOpen(false);
+    setSelectedMerchant(null);
+  };
+
+  // No dedicated loan-application screen exists yet — return to the base
+  // screen (where the BNPL purchase flow lives) and confirm the selection.
+  const handleStartPurchase = (merchant: MerchantSummary) => {
+    setIsMerchantDetailOpen(false);
+    setIsMerchantsOpen(false);
+    setSelectedMerchant(null);
+    setToastMessage(`Selected ${merchant.name} — continue your BNPL purchase below`);
   };
 
   const handleDisconnect = async () => {
@@ -70,24 +93,28 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
 
   // Any full-screen overlay hides the header/bottom bar
   const hasOverlay =
-    isSettingsOpen || isLoanHistoryOpen || isLoanDetailOpen || isReputationOpen || isMerchantsOpen;
+    isSettingsOpen ||
+    isLoanHistoryOpen ||
+    isLoanDetailOpen ||
+    isReputationOpen ||
+    isMerchantsOpen ||
+    isMerchantDetailOpen ||
+    isProfileOpen ||
+    isEditProfileOpen;
 
   // Inject callbacks into children so PayScreen can trigger navigation
   const enhancedChildren = isValidElement(children)
     ? cloneElement(children as React.ReactElement<PayScreenChildProps>, {
-        onLoanHistoryPress: () => setIsLoanHistoryOpen(true),
-        onViewReputationPress: () => setIsReputationOpen(true),
-        onExploreMerchantsPress: () => setIsMerchantsOpen(true),
-        onToast: (message: string) => setToastMessage(message),
-      })
+      onLoanHistoryPress: () => setIsLoanHistoryOpen(true),
+      onViewReputationPress: () => setIsReputationOpen(true),
+      onExploreMerchantsPress: () => setIsMerchantsOpen(true),
+      onToast: (message: string) => setToastMessage(message),
+    })
     : children;
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={60}>
+    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <View className="flex-1 bg-background">
         <View className="flex-1 pb-[60px]">
           {!hasOverlay && (
             <Header
@@ -100,12 +127,8 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
               onProfilePress={() => setIsProfileOpen(true)}
             />
           )}
-          <ScrollView
-            contentContainerClassName="flex-grow"
-            className="flex-1"
-            keyboardShouldPersistTaps="handled">
-            {enhancedChildren}
-          </ScrollView>
+
+          <View className="flex-1">{enhancedChildren}</View>
         </View>
         {!hasOverlay && (
           <View className="absolute bottom-0 left-0 right-0 z-10 h-[60px] bg-transparent">
@@ -181,7 +204,21 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
         {/* Merchants Overlay */}
         {isMerchantsOpen && (
           <View className="absolute inset-0 z-20">
-            <MerchantsScreen onBack={() => setIsMerchantsOpen(false)} />
+            <MerchantsScreen
+              onBack={() => setIsMerchantsOpen(false)}
+              onMerchantPress={handleMerchantPress}
+            />
+          </View>
+        )}
+
+        {/* Merchant Detail Overlay */}
+        {isMerchantDetailOpen && selectedMerchant && (
+          <View className="absolute inset-0 z-30">
+            <MerchantDetailScreen
+              merchant={selectedMerchant}
+              onBack={handleMerchantDetailBack}
+              onStartPurchasePress={handleStartPurchase}
+            />
           </View>
         )}
 
@@ -190,15 +227,15 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
           isOpen={isNotificationsOpen}
           onClose={() => setIsNotificationsOpen(false)}
         />
-      </KeyboardAvoidingView>
 
-      {/* App-level toast host (outside the ScrollView so it pins to the viewport) */}
-      <Toast
-        visible={toastMessage !== null}
-        message={toastMessage ?? ''}
-        type="success"
-        onHide={() => setToastMessage(null)}
-      />
+        {/* App-level toast host */}
+        <Toast
+          visible={toastMessage !== null}
+          message={toastMessage ?? ''}
+          type="success"
+          onHide={() => setToastMessage(null)}
+        />
+      </View>
     </SafeAreaView>
   );
 };

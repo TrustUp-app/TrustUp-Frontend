@@ -14,11 +14,12 @@ export interface UseInvestReturn {
 }
 
 /**
- * Formats the currency value, returning exactly 2 decimal places.
+ * Formats the currency value with thousand separators,
+ * preserving up to 2 decimal places.
  */
 export const formatCurrency = (value: string): string => {
   if (!value || value.trim() === '') {
-    return '0.00';
+    return '';
   }
 
   // Filter out non-numeric characters except decimal point
@@ -38,21 +39,24 @@ export const formatCurrency = (value: string): string => {
 
   // Handle case where only decimal point remains after filtering
   if (filtered === '.' || filtered === '') {
-    return '0.00';
+    return '';
   }
 
-  // Parse to number and format to 2 decimal places
-  const numValue = parseFloat(filtered);
+  // Separate integer and decimal portions
+  const [integerPart, decimalPart] = filtered.split('.');
 
-  // Handle NaN case
-  if (isNaN(numValue)) {
-    return '0.00';
+  // Add thousand separators to the integer portion
+  const formattedInteger = (integerPart || '0').replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    ',',
+  );
+
+  // Preserve the decimal point while typing and limit to 2 decimal places
+  if (decimalPart !== undefined) {
+    return `${formattedInteger}.${decimalPart.substring(0, 2)}`;
   }
 
-  // Format to exactly 2 decimal places
-  const formatted = numValue.toFixed(2);
-
-  return formatted;
+  return formattedInteger;
 };
 
 /**

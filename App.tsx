@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import InvestScreen from 'components/pages/InvestScreen';
 import SignInScreen from 'components/pages/SignIn';
@@ -26,6 +26,11 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#FFFFFF"
+        translucent={false}
+      />
       {session === 'loading' ? (
         <View
           style={{

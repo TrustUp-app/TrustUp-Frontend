@@ -125,3 +125,17 @@ export interface MerchantListResponse {
   limit: number;
   offset: number;
 }
+
+/** `GET /merchants/:id` → returned directly (no success envelope). */
+export interface MerchantDetail {
+  id: string;
+  wallet: string;
+  name: string;
+  logo: string;
+  description?: string;
+  category?: string;
+  website?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
