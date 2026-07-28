@@ -10,6 +10,7 @@ import LoanHistoryScreen from '../pages/LoanHistoryScreen';
 import LoanDetailScreen from '../pages/LoanDetailScreen';
 import ReputationScreen from '../pages/ReputationScreen';
 import MerchantsScreen from '../pages/MerchantsScreen';
+import MerchantDetailScreen from '../pages/MerchantDetailScreen';
 import ProfileScreen from '../pages/ProfileScreen';
 import EditProfileScreen from '../pages/EditProfileScreen';
 import { useProfile, getInitials } from '../../hooks/profile/use-profile';
