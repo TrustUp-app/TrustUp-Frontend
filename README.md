@@ -7,7 +7,6 @@
 ![Expo](https://img.shields.io/badge/expo-1C1E24?style=for-the-badge&logo=expo&logoColor=#D04A37)
 ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
-
 [![Open Source](https://img.shields.io/badge/Open%20Source-Yes-green?style=flat-square)](https://opensource.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![React Native](https://img.shields.io/badge/React%20Native-0.81-61DAFB?style=flat-square&logo=react)](https://reactnative.dev/)
@@ -39,15 +38,15 @@ TrustUp Mobile App is the frontend application for the TrustUp BNPL ecosystem on
 
 ### Core Technologies
 
-| Category | Technology | Version |
-|----------|-----------|---------|
-| **Language** | TypeScript | 5.9 |
-| **Framework** | React Native | 0.81.5 |
-| **Platform** | Expo | 54.0 |
-| **UI Library** | React | 19.1 |
-| **Styling** | NativeWind (Tailwind) | latest |
-| **Navigation** | React Navigation | 7.1 |
-| **Animations** | Reanimated | 4.1 |
+| Category       | Technology            | Version |
+| -------------- | --------------------- | ------- |
+| **Language**   | TypeScript            | 5.9     |
+| **Framework**  | React Native          | 0.81.5  |
+| **Platform**   | Expo                  | 54.0    |
+| **UI Library** | React                 | 19.1    |
+| **Styling**    | NativeWind (Tailwind) | latest  |
+| **Navigation** | React Navigation      | 7.1     |
+| **Animations** | Reanimated            | 4.1     |
 
 ### Key Libraries
 
@@ -55,31 +54,43 @@ TrustUp Mobile App is the frontend application for the TrustUp BNPL ecosystem on
 - 🎭 **React Native Reanimated** - Smooth animations
 
 ## 📁 Project Structure
+
 ```
 TrustUp-Frontend/
 ├── .expo/                      # Expo configuration cache
 ├── assets/                     # Static assets (images, fonts)
 ├── components/                 # Reusable UI components
-│   ├── shared/                # Shared components across app
-│   │   ├── BottomBar.tsx     # Bottom navigation bar
-│   │   ├── Header.tsx        # App header component
-│   │   ├── MainLayout.tsx    # Main app layout wrapper
-├── pages/                      # Screen pages
-│   ├── InvestScreen/          # Investment screen
-│   │   ├── components/       # InvestScreen-specific components
-│   │   └── InvestScreen.tsx  # Main invest screen
-│   └── PayScreen/             # Payment screen
-│       ├── components/       # PayScreen-specific components
-│       └── PayScreen.tsx     # Main payment screen
+│   ├── pages/                 # Screen components
+│   │   ├── InvestScreen.tsx   # Main investment screen
+│   │   ├── PayScreen.tsx      # Main payment screen
+│   │   ├── LoanHistoryScreen.tsx # Loan history screen
+│   │   ├── LoanDetailScreen.tsx  # Loan detail screen
+│   │   ├── MerchantListScreen.tsx # Merchant directory screen
+│   │   ├── ProfileScreen.tsx  # User profile screen
+│   │   ├── SettingsScreen.tsx # User settings screen
+│   │   ├── SignIn.tsx         # Sign-in authentication screen
+│   │   └── SignUp.tsx         # Sign-up registration screen
+│   └── shared/                # Shared components across app
+│       ├── BottomBar.tsx      # Bottom navigation bar
+│       ├── Header.tsx         # App header component
+│       ├── MainLayout.tsx     # Main app layout wrapper
+│       ├── NotificationsPanel.tsx # Notifications modal panel
+│       └── Loader.tsx         # Loading indicator component
+├── context/                    # React Context providers (AuthContext, etc.)
+├── docs/                       # Project documentation & contributing guides
+├── hooks/                      # Custom React hooks (auth, invest, loans, notifications, etc.)
+├── lib/                        # Utility libraries, storage helpers & API clients
+├── services/                   # Backend service integrations (loans, merchants, reputation)
+├── theme/                      # Theme tokens & custom colors
 ├── types/                      # TypeScript type definitions
 ├── node_modules/              # Dependencies
 ├── .gitignore                 # Git ignore rules
 ├── App.tsx                    # App entry point
 ├── app.json                   # Expo app configuration
 ├── babel.config.js            # Babel configuration
-├── cesconfig.json             # CES configuration
+├── cesconfig.jsonc            # CES configuration
 ├── eslint.config.js           # ESLint configuration
-├── .global.css                # Global CSS styles
+├── global.css                 # Global CSS styles
 ├── metro.config.js            # Metro bundler configuration
 ├── nativewind-env.d.ts        # NativeWind TypeScript definitions
 ├── package-lock.json          # Locked dependencies
@@ -99,6 +110,7 @@ TrustUp-Frontend/
 - Expo Go app (for testing on physical devices)
 
 ### Installation
+
 ```bash
 # Clone the repository
 git clone https://github.com/TrustUp-app/TrustUp-Frontend.git
@@ -113,8 +125,8 @@ cp .env.example .env
 # Configure your .env file (see Configuration section)
 ```
 
-
 ### Running the Application
+
 ```bash
 # Start Expo development server
 npm start
@@ -136,6 +148,7 @@ npm run web
 3. Scan the QR code with your camera (iOS) or Expo Go app (Android)
 
 ### Building for Production
+
 ```bash
 # Create native projects
 npm run prebuild
@@ -148,6 +161,7 @@ eas build --platform android
 ```
 
 ## 🧪 Testing
+
 ```bash
 # Run linter
 npm run lint
@@ -217,18 +231,21 @@ We welcome contributions! Please see our [Contributing Guide](./docs/contributin
 ### Common Issues
 
 **Metro bundler issues:**
+
 ```bash
 # Clear cache
 npx expo start -c
 ```
 
 **iOS build issues:**
+
 ```bash
 # Clean iOS build
 cd ios && pod install && cd ..
 ```
 
 **Android build issues:**
+
 ```bash
 # Clean Android build
 cd android && ./gradlew clean && cd ..
@@ -249,7 +266,9 @@ cd android && ./gradlew clean && cd ..
 - [NativeWind](https://www.nativewind.dev/) - For Tailwind CSS integration
 
 ---
+
 <!-- LEADERBOARD_START -->
+
 ## 🏆 Top 3 Contributors
 
 <div align="center">
@@ -288,6 +307,7 @@ cd android && ./gradlew clean && cd ..
 <!-- LEADERBOARD_END -->
 
 ---
+
 <div align="center">
 
 **Built with ❤️ for the Stellar ecosystem**
@@ -297,4 +317,3 @@ cd android && ./gradlew clean && cd ..
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
 
 </div>
-
