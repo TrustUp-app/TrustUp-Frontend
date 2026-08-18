@@ -1,54 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Notification } from '../../types/Notification';
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: '1',
-    type: 'payment',
-    title: 'Payment Due Soon',
-    body: "Your $50.00 payment is due in 3 days. Don't miss it!",
-    timestamp: '2 min ago',
-    isRead: false,
-  },
-  {
-    id: '2',
-    type: 'credit',
-    title: 'Credit Increased',
-    body: 'Great news! Your available credit increased to $320.00.',
-    timestamp: '1 hour ago',
-    isRead: false,
-  },
-  {
-    id: '3',
-    type: 'merchant',
-    title: 'New Merchant Available',
-    body: 'TechStore has joined TrustUp. Shop with BNPL now.',
-    timestamp: '3 hours ago',
-    isRead: false,
-  },
-  {
-    id: '4',
-    type: 'reputation',
-    title: 'Reputation Updated',
-    body: 'Your reputation score improved to 82/100. Keep it up!',
-    timestamp: 'Yesterday',
-    isRead: true,
-  },
-  {
-    id: '5',
-    type: 'security',
-    title: 'Terms Updated',
-    body: "We've updated our privacy policy. Tap to review the changes.",
-    timestamp: '3 days ago',
-    isRead: true,
-  },
-];
-
-/** Simulates network latency for the mocked endpoints below. */
-const simulateRequest = <T>(result: T, delay = 400): Promise<T> =>
-  new Promise((resolve) => setTimeout(() => resolve(result), delay));
+import {
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from '../../services/notifications.service';
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
@@ -59,6 +15,14 @@ export interface UseNotificationsReturn {
   error: string | null;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  /**
+   * Removes a notification from the local list.
+   *
+   * NOTE: The TrustUp API does not expose a delete endpoint (as of API-23/24
+   * documentation). This operation is intentionally local-only and will NOT
+   * persist across sessions or devices. If a delete endpoint is added in the
+   * future, this function should be wired to it.
+   */
   deleteNotification: (id: string) => void;
   refresh: () => void;
 }
@@ -66,36 +30,60 @@ export interface UseNotificationsReturn {
 /**
  * Custom hook for fetching and managing the user's notifications.
  *
- * @todo Replace the mock calls below with real network calls once the API
- *   is available:
- *   - `GET /notifications` (supports `?unread=true`)
- *   - `PATCH /notifications/{id}/read`
- *   - `PATCH /notifications/read-all`
- *
- * Until then, this hook simulates network delay with `setTimeout` so the
- * panel's loading/empty states and optimistic updates can be built and
- * reviewed. It MUST NOT ship to production in this state.
+ * - Fetches from `GET /notifications` via `notifications.service.ts`.
+ * - `markAsRead` / `markAllAsRead` apply optimistic updates and roll back on
+ *   server failure.
+ * - `deleteNotification` is local-only (no delete endpoint in the API).
+ * - Falls back to a DEV seed when `EXPO_PUBLIC_API_URL` is not configured
+ *   (same `isApiConfigured` pattern as loans/merchants services).
  */
 export const useNotifications = (): UseNotificationsReturn => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Keep a stable abort-controller ref so fetchNotifications can be safely
+  // cancelled on unmount or when the caller calls refresh().
+  const abortRef = useRef<AbortController | null>(null);
+
   const fetchNotifications = useCallback(() => {
+    // Cancel any in-flight request before starting a new one.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setIsLoading(true);
     setError(null);
 
-    // TODO: replace with `apiFetch<NotificationsResponse>('/notifications')`
-    simulateRequest(MOCK_NOTIFICATIONS)
-      .then(setNotifications)
-      .catch(() => setError('Failed to load notifications'))
-      .finally(() => setIsLoading(false));
+    getNotifications({ signal: controller.signal })
+      .then(({ notifications: fetched }) => {
+        setNotifications(fetched);
+      })
+      .catch((err: unknown) => {
+        // Ignore aborted requests — they are expected on unmount / refresh.
+        if (err instanceof Error && err.name === 'AbortError') return;
+        setError('Failed to load notifications');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   useEffect(() => {
     fetchNotifications();
+    return () => {
+      // Cancel the in-flight request when the component unmounts.
+      abortRef.current?.abort();
+    };
   }, [fetchNotifications]);
 
+  /**
+   * Marks a single notification as read.
+   *
+   * Applies the update immediately (optimistic), then confirms with
+   * `PATCH /notifications/:id/read`. Rolls back and surfaces an error on
+   * failure.
+   */
   const markAsRead = useCallback((id: string) => {
     let previous: Notification[] = [];
     setNotifications((prev) => {
@@ -103,13 +91,20 @@ export const useNotifications = (): UseNotificationsReturn => {
       return prev.map((n) => (n.id === id ? { ...n, isRead: true } : n));
     });
 
-    // TODO: replace with `apiFetch(`/notifications/${id}/read`, { method: 'PATCH' })`
-    simulateRequest(null).catch(() => {
+    markNotificationRead(id).catch((err: unknown) => {
+      if (err instanceof Error && err.name === 'AbortError') return;
       setNotifications(previous);
       setError('Failed to mark notification as read');
     });
   }, []);
 
+  /**
+   * Marks all notifications as read.
+   *
+   * Applies the update immediately (optimistic), then confirms with
+   * `PATCH /notifications/read-all`. Rolls back and surfaces an error on
+   * failure.
+   */
   const markAllAsRead = useCallback(() => {
     let previous: Notification[] = [];
     setNotifications((prev) => {
@@ -117,25 +112,21 @@ export const useNotifications = (): UseNotificationsReturn => {
       return prev.map((n) => ({ ...n, isRead: true }));
     });
 
-    // TODO: replace with `apiFetch('/notifications/read-all', { method: 'PATCH' })`
-    simulateRequest(null).catch(() => {
+    markAllNotificationsRead().catch((err: unknown) => {
+      if (err instanceof Error && err.name === 'AbortError') return;
       setNotifications(previous);
       setError('Failed to mark all notifications as read');
     });
   }, []);
 
+  /**
+   * Removes a notification from the local list.
+   *
+   * Local-only: the TrustUp API does not expose a delete endpoint (API-23/24).
+   * No server call is made. See JSDoc on `UseNotificationsReturn.deleteNotification`.
+   */
   const deleteNotification = useCallback((id: string) => {
-    let previous: Notification[] = [];
-    setNotifications((prev) => {
-      previous = prev;
-      return prev.filter((n) => n.id !== id);
-    });
-
-    // No delete endpoint is documented yet — this stays local-only for now.
-    simulateRequest(null).catch(() => {
-      setNotifications(previous);
-      setError('Failed to delete notification');
-    });
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
 
   const unreadCount = notifications.reduce((count, n) => (n.isRead ? count : count + 1), 0);
