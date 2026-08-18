@@ -1,7 +1,8 @@
 import { getAccessToken, clearTokens } from './auth-storage';
 import { notifyUnauthorized, setUnauthorizedHandler } from './auth-events';
+import { refreshAuthToken, setTokenChangeHandler } from './auth-refresh';
 
-export { setUnauthorizedHandler };
+export { setUnauthorizedHandler, setTokenChangeHandler };
 
 export type FieldErrors = Record<string, string>;
 
@@ -88,6 +89,8 @@ export const unwrapApiData = <T>(body: unknown): T => {
 /**
  * Thin fetch wrapper that prefixes {@link API_BASE_URL}, attaches the stored
  * Bearer token, and parses JSON responses.
+ * If a 401 is encountered, it attempts a single token refresh using the stored refresh_token
+ * and retries the request once before signaling sign-out on failure.
  *
  * @param knownFields Optional list of form field names — when present, the
  *   error body is inspected for per-field validation errors (see
@@ -97,7 +100,8 @@ export const unwrapApiData = <T>(body: unknown): T => {
 export const apiFetch = async <T>(
   path: string,
   options: RequestInit = {},
-  knownFields?: string[]
+  knownFields?: string[],
+  isRetry = false
 ): Promise<T> => {
   const token = await getAccessToken();
 
@@ -117,6 +121,15 @@ export const apiFetch = async <T>(
   const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
 
   if (response.status === 401) {
+    // Avoid refresh loops on login/register/refresh itself
+    const isAuthEndpoint = path.startsWith('/auth/login') || path.startsWith('/auth/refresh');
+    if (!isRetry && !isAuthEndpoint) {
+      const refreshedToken = await refreshAuthToken(API_BASE_URL);
+      if (refreshedToken) {
+        return apiFetch<T>(path, options, knownFields, true);
+      }
+    }
+
     await clearTokens();
     notifyUnauthorized();
     throw new ApiError(401, 'Session expired. Please sign in again.');
@@ -158,7 +171,8 @@ export const apiFetch = async <T>(
 export const apiFetchForm = async <T>(
   path: string,
   formData: FormData,
-  knownFields?: string[]
+  knownFields?: string[],
+  isRetry = false
 ): Promise<T> => {
   const token = await getAccessToken();
   const headers: Record<string, string> = {};
@@ -175,6 +189,14 @@ export const apiFetchForm = async <T>(
   });
 
   if (response.status === 401) {
+    const isAuthEndpoint = path.startsWith('/auth/login') || path.startsWith('/auth/refresh');
+    if (!isRetry && !isAuthEndpoint) {
+      const refreshedToken = await refreshAuthToken(API_BASE_URL);
+      if (refreshedToken) {
+        return apiFetchForm<T>(path, formData, knownFields, true);
+      }
+    }
+
     await clearTokens();
     notifyUnauthorized();
     throw new ApiError(401, 'Session expired. Please sign in again.');

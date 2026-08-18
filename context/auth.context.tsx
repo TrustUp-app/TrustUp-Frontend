@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { apiFetch, ApiError, setUnauthorizedHandler } from '../lib/api';
+import { apiFetch, ApiError, setUnauthorizedHandler, setTokenChangeHandler } from '../lib/api';
 import { getAccessToken, setTokens, clearTokens } from '../lib/auth-storage';
 import { mapUserMeToProfile, type UserMeApiResponse, type UserProfile } from '../types/User';
 
@@ -89,6 +89,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     return () => setUnauthorizedHandler(null);
   }, [signOut]);
+
+  // Keep state in sync when background refresh occurs
+  useEffect(() => {
+    setTokenChangeHandler((newToken: string) => {
+      setToken(newToken);
+    });
+    return () => setTokenChangeHandler(null);
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({ user, token, isLoading, signIn, signOut, completeAuth }),
