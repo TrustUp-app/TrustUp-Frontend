@@ -1,10 +1,12 @@
 import React, { ReactNode, useState, isValidElement, cloneElement } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BottomBar } from './BottomBar';
+import { BottomBar, type MainTab } from './BottomBar';
 import { Header } from './Header';
 import { NotificationsPanel } from './NotificationsPanel';
 import { Toast } from './Toast';
+import PayScreen from '../pages/pay/PayScreen';
+import InvestScreen from '../pages/InvestScreen';
 import SettingsScreen from '../pages/SettingsScreen';
 import LoanHistoryScreen from '../pages/LoanHistoryScreen';
 import LoanDetailScreen from '../pages/LoanDetailScreen';
@@ -19,7 +21,7 @@ import type { Loan } from '../../types/Loan';
 import type { MerchantSummary } from '../../types/api';
 
 interface MainLayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
   /** Called when the user disconnects the wallet or signs out. */
   onSignOut?: () => void;
 }
@@ -33,7 +35,7 @@ interface PayScreenChildProps {
 }
 
 export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState<MainTab>('pay');
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLoanHistoryOpen, setIsLoanHistoryOpen] = useState(false);
@@ -103,15 +105,32 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
     isProfileOpen ||
     isEditProfileOpen;
 
-  // Inject callbacks into children so PayScreen can trigger navigation
-  const enhancedChildren = isValidElement(children)
-    ? cloneElement(children as React.ReactElement<PayScreenChildProps>, {
-      onLoanHistoryPress: () => setIsLoanHistoryOpen(true),
-      onViewReputationPress: () => setIsReputationOpen(true),
-      onExploreMerchantsPress: () => setIsMerchantsOpen(true),
-      onToast: (message: string) => setToastMessage(message),
-    })
-    : children;
+  // Render either explicit children or the selected tab screen
+  const renderContent = () => {
+    if (children) {
+      return isValidElement(children)
+        ? cloneElement(children as React.ReactElement<PayScreenChildProps>, {
+            onLoanHistoryPress: () => setIsLoanHistoryOpen(true),
+            onViewReputationPress: () => setIsReputationOpen(true),
+            onExploreMerchantsPress: () => setIsMerchantsOpen(true),
+            onToast: (message: string) => setToastMessage(message),
+          })
+        : children;
+    }
+
+    if (activeTab === 'invest') {
+      return <InvestScreen />;
+    }
+
+    return (
+      <PayScreen
+        onLoanHistoryPress={() => setIsLoanHistoryOpen(true)}
+        onViewReputationPress={() => setIsReputationOpen(true)}
+        onExploreMerchantsPress={() => setIsMerchantsOpen(true)}
+        onToast={(message: string) => setToastMessage(message)}
+      />
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
@@ -129,7 +148,7 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
             />
           )}
 
-          <View className="flex-1">{enhancedChildren}</View>
+          <View className="flex-1">{renderContent()}</View>
         </View>
         {!hasOverlay && (
           <View className="absolute bottom-0 left-0 right-0 z-10 h-[60px] bg-transparent">

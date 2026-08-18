@@ -6,10 +6,19 @@ export { setUnauthorizedHandler };
 export type FieldErrors = Record<string, string>;
 
 /**
- * Base URL for the backend API, read from the public Expo env variable.
- * See `.env.example` for the expected value (already includes `/api/v1`).
+ * Normalizes the API base URL from EXPO_PUBLIC_API_URL.
+ * Handles URLs with or without trailing slash and with or without /api/v1 suffix.
  */
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
+export function resolveApiBaseUrl(): string {
+  const raw = process.env.EXPO_PUBLIC_API_URL?.trim() || 'http://localhost:4000';
+  const clean = raw.replace(/\/+$/, '');
+  return clean.endsWith('/api/v1') ? clean : `${clean}/api/v1`;
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
+
+/** True when a real API base URL was explicitly configured. */
+export const isApiConfigured = Boolean(process.env.EXPO_PUBLIC_API_URL);
 
 export class ApiError extends Error {
   status: number;
@@ -23,16 +32,17 @@ export class ApiError extends Error {
   }
 }
 
+export class ApiClientError extends ApiError {
+  constructor(message: string, status: number, fieldErrors?: FieldErrors) {
+    super(status, message, fieldErrors);
+    this.name = 'ApiClientError';
+  }
+}
+
 /**
- * Best-effort extraction of per-field validation errors from a REST error
- * body. Covers three common shapes since the real backend contract isn't
- * documented anywhere in this repo: NestJS class-validator's default
- * `{ message: string[] }` (field name assumed to prefix each sentence),
- * `{ errors: { field: string | string[] } }`, and
- * `{ errors: [{ field | property, message }] }`. Returns undefined if none
- * match — callers fall back to the flat message.
+ * Best-effort extraction of per-field validation errors from a REST error body.
  */
-function parseFieldErrors(body: unknown, knownFields: string[]): FieldErrors | undefined {
+export function parseFieldErrors(body: unknown, knownFields: string[]): FieldErrors | undefined {
   if (!body || typeof body !== 'object') return undefined;
   const result: FieldErrors = {};
 
@@ -75,8 +85,7 @@ function parseFieldErrors(body: unknown, knownFields: string[]): FieldErrors | u
 }
 
 /**
- * Some TrustUp endpoints wrap payloads as `{ success, data, message }`.
- * Returns the inner `data` when present; otherwise the body as-is.
+ * Unwraps `{ success, data, message }` responses.
  */
 export const unwrapApiData = <T>(body: unknown): T => {
   if (body && typeof body === 'object' && 'data' in body) {
@@ -85,14 +94,27 @@ export const unwrapApiData = <T>(body: unknown): T => {
   return body as T;
 };
 
+export interface RequestOptions {
+  params?: Record<string, string | number | boolean | undefined | null>;
+  signal?: AbortSignal;
+  headers?: Record<string, string>;
+  knownFields?: string[];
+}
+
+function buildUrl(path: string, params?: RequestOptions['params']): string {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const baseUrl = resolveApiBaseUrl();
+  const url = new URL(`${baseUrl}${normalizedPath}`);
+  if (params) {
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
+    }
+  }
+  return url.toString();
+}
+
 /**
- * Thin fetch wrapper that prefixes {@link API_BASE_URL}, attaches the stored
- * Bearer token, and parses JSON responses.
- *
- * @param knownFields Optional list of form field names — when present, the
- *   error body is inspected for per-field validation errors (see
- *   {@link parseFieldErrors}) and attached to the thrown ApiError.
- * @throws {ApiError} when the response status is not in the 2xx range.
+ * Unified fetch client for TrustUp API.
  */
 export const apiFetch = async <T>(
   path: string,
@@ -100,9 +122,8 @@ export const apiFetch = async <T>(
   knownFields?: string[]
 ): Promise<T> => {
   const token = await getAccessToken();
-
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    Accept: 'application/json',
     ...(options.headers as Record<string, string> | undefined),
   };
 
@@ -110,90 +131,123 @@ export const apiFetch = async <T>(
     headers.Authorization = `Bearer ${token}`;
   }
 
-  if (!API_BASE_URL) {
-    throw new ApiError(0, 'EXPO_PUBLIC_API_URL is not configured');
+  if (options.body && typeof options.body === 'string' && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  const fullUrl = path.startsWith('http://') || path.startsWith('https://') ? path : buildUrl(path);
 
-  if (response.status === 401) {
+  let res: Response;
+  try {
+    res = await fetch(fullUrl, {
+      ...options,
+      headers,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Network request failed';
+    throw new ApiError(0, message);
+  }
+
+  if (res.status === 401) {
     await clearTokens();
     notifyUnauthorized();
     throw new ApiError(401, 'Session expired. Please sign in again.');
   }
 
-  if (!response.ok) {
-    let message = `Request failed with status ${response.status}`;
-    let fieldErrors: FieldErrors | undefined;
-    try {
-      const body = await response.json();
-      if (typeof body?.message === 'string') {
-        message = body.message;
-      } else if (Array.isArray(body?.message)) {
-        message = body.message.join(', ');
-      }
-      fieldErrors = parseFieldErrors(body, knownFields ?? []);
-    } catch {
-      // Non-JSON error body; keep the default message.
-    }
-    throw new ApiError(response.status, message, fieldErrors);
+  const text = await res.text();
+  const body = text ? safeJsonParse(text) : null;
+
+  if (!res.ok) {
+    const fieldErrors = knownFields ? parseFieldErrors(body, knownFields) : undefined;
+    const message =
+      (body && typeof body === 'object' && 'message' in body
+        ? Array.isArray((body as { message: unknown }).message)
+          ? (body as { message: string[] }).message.join('; ')
+          : String((body as { message: unknown }).message)
+        : null) ?? `Request failed with status ${res.status}`;
+    throw new ApiError(res.status, message, fieldErrors);
   }
 
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  const json = await response.json();
-  return unwrapApiData<T>(json);
+  return body as T;
 };
 
 /**
- * Variant of {@link apiFetch} for multipart/form-data bodies (e.g. register
- * with an optional profile image). Does not set Content-Type — fetch/RN sets
- * the multipart boundary automatically when the body is a FormData instance.
- *
- * @param knownFields Optional list of form field names for per-field error
- *   mapping, same as {@link apiFetch}.
+ * Convenience wrapper for multipart/form-data POST requests.
  */
 export const apiFetchForm = async <T>(
   path: string,
   formData: FormData,
   knownFields?: string[]
 ): Promise<T> => {
-  const token = await getAccessToken();
-  const headers: Record<string, string> = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
+  return apiFetch<T>(
+    path,
+    {
+      method: 'POST',
+      body: formData as unknown as BodyInit,
+    },
+    knownFields
+  );
+};
 
-  if (!API_BASE_URL) {
-    throw new ApiError(0, 'EXPO_PUBLIC_API_URL is not configured');
+function safeJsonParse(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
   }
+}
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'POST',
-    headers,
-    body: formData,
-  });
+/**
+ * HTTP client convenience methods for GET, POST, PUT, DELETE, PATCH.
+ */
+export const apiClient = {
+  get: <T>(path: string, options?: RequestOptions): Promise<T> =>
+    apiFetch<T>(
+      path,
+      { method: 'GET', signal: options?.signal, headers: options?.headers },
+      options?.knownFields
+    ),
 
-  if (response.status === 401) {
-    await clearTokens();
-    notifyUnauthorized();
-    throw new ApiError(401, 'Session expired. Please sign in again.');
-  }
+  post: <T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> =>
+    apiFetch<T>(
+      path,
+      {
+        method: 'POST',
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        signal: options?.signal,
+        headers: options?.headers,
+      },
+      options?.knownFields
+    ),
 
-  if (!response.ok) {
-    let message = `Request failed with status ${response.status}`;
-    let fieldErrors: FieldErrors | undefined;
-    try {
-      const body = await response.json();
-      if (typeof body?.message === 'string') message = body.message;
-      else if (Array.isArray(body?.message)) message = body.message.join(', ');
-      fieldErrors = parseFieldErrors(body, knownFields ?? []);
-    } catch {
-      // keep default message
-    }
-    throw new ApiError(response.status, message, fieldErrors);
-  }
+  put: <T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> =>
+    apiFetch<T>(
+      path,
+      {
+        method: 'PUT',
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        signal: options?.signal,
+        headers: options?.headers,
+      },
+      options?.knownFields
+    ),
 
-  const json = await response.json();
-  return unwrapApiData<T>(json);
+  patch: <T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> =>
+    apiFetch<T>(
+      path,
+      {
+        method: 'PATCH',
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        signal: options?.signal,
+        headers: options?.headers,
+      },
+      options?.knownFields
+    ),
+
+  delete: <T>(path: string, options?: RequestOptions): Promise<T> =>
+    apiFetch<T>(
+      path,
+      { method: 'DELETE', signal: options?.signal, headers: options?.headers },
+      options?.knownFields
+    ),
 };
