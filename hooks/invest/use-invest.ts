@@ -46,10 +46,7 @@ export const formatCurrency = (value: string): string => {
   const [integerPart, decimalPart] = filtered.split('.');
 
   // Add thousand separators to the integer portion
-  const formattedInteger = (integerPart || '0').replace(
-    /\B(?=(\d{3})+(?!\d))/g,
-    ',',
-  );
+  const formattedInteger = (integerPart || '0').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
   // Preserve the decimal point while typing and limit to 2 decimal places
   if (decimalPart !== undefined) {

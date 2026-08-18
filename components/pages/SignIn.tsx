@@ -20,7 +20,10 @@ interface SignInScreenProps {
   onNavigateToCreateAccount?: () => void;
 }
 
-export default function SignInScreen({ onSignInSuccess, onNavigateToCreateAccount }: SignInScreenProps) {
+export default function SignInScreen({
+  onSignInSuccess,
+  onNavigateToCreateAccount,
+}: SignInScreenProps) {
   const {
     formState,
     errors,
@@ -78,7 +81,7 @@ export default function SignInScreen({ onSignInSuccess, onNavigateToCreateAccoun
             />
           </View>
           {errors.wallet ? (
-            <Text className="mb-2 -mt-2 ml-1 text-xs text-red-500">{errors.wallet}</Text>
+            <Text className="-mt-2 mb-2 ml-1 text-xs text-red-500">{errors.wallet}</Text>
           ) : null}
 
           <Text className="mb-2 ml-1 text-xs font-bold text-[#94a3b8]">Password</Text>
@@ -105,7 +108,7 @@ export default function SignInScreen({ onSignInSuccess, onNavigateToCreateAccoun
             </Pressable>
           </View>
           {errors.password ? (
-            <Text className="mb-2 -mt-2 ml-1 text-xs text-red-500">{errors.password}</Text>
+            <Text className="-mt-2 mb-2 ml-1 text-xs text-red-500">{errors.password}</Text>
           ) : null}
           {errors.general ? (
             <Text className="mb-4 text-center text-sm text-red-500">{errors.general}</Text>
@@ -114,9 +117,9 @@ export default function SignInScreen({ onSignInSuccess, onNavigateToCreateAccoun
           <TouchableOpacity
             className="mb-6 self-end"
             activeOpacity={0.7}
-             onPress={() =>
-           Alert.alert('Coming soon', 'Wallet-based sign-in is not available yet.')
-          }>
+            onPress={() =>
+              Alert.alert('Coming soon', 'Wallet-based sign-in is not available yet.')
+            }>
             <Text className="text-sm font-bold text-signin-link">Forgot password?</Text>
           </TouchableOpacity>
 
@@ -138,7 +141,8 @@ export default function SignInScreen({ onSignInSuccess, onNavigateToCreateAccoun
               <ActivityIndicator color="#fff" />
             ) : (
               <>
-                <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: 'bold', marginRight: 8 }}>
+                <Text
+                  style={{ color: '#ffffff', fontSize: 18, fontWeight: 'bold', marginRight: 8 }}>
                   Sign In
                 </Text>
                 <ArrowRight stroke="#fff" size={18} />

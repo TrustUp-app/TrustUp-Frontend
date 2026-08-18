@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "my-expo-app",
-    "slug": "my-expo-app",
+    "name": "TrustUp",
+    "slug": "trustup",
+    "scheme": "trustup",
     "version": "1.0.0",
     "web": {
       "favicon": "./assets/favicon.png"
@@ -20,13 +21,15 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.trustup.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "package": "com.trustup.app",
       "softwareKeyboardLayoutMode": "pan"
     }
   }
