@@ -330,16 +330,18 @@ const LoanDetailScreen: React.FC<LoanDetailScreenProps> = ({ loan, onBack }) => 
         )}
 
         {/* Payment Timeline */}
-        <View className="mb-4 rounded-2xl bg-white p-6 shadow-sm">
-          <Text className="mb-4 text-base font-bold text-textStrong">Payment Timeline</Text>
-          {loan.installments.map((installment, index) => (
-            <TimelineItem
-              key={installment.id}
-              installment={installment}
-              isLast={index === loan.installments.length - 1}
-            />
-          ))}
-        </View>
+        {loan.installments && loan.installments.length > 0 ? (
+          <View className="mb-4 rounded-2xl bg-white p-6 shadow-sm">
+            <Text className="mb-4 text-base font-bold text-textStrong">Payment Timeline</Text>
+            {loan.installments.map((installment, index) => (
+              <TimelineItem
+                key={installment.id}
+                installment={installment}
+                isLast={index === loan.installments.length - 1}
+              />
+            ))}
+          </View>
+        ) : null}
 
         {/* Loan Details Card */}
         <View className="rounded-2xl bg-white p-6 shadow-sm">

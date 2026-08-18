@@ -4,8 +4,10 @@ import {
   formatLoanAmount,
   getDueDateLabel,
   hasOverdueInstallments,
+  mapLoanListItemToLoan,
 } from './use-loans';
 import type { Loan } from '../../types/Loan';
+import type { LoanListItem } from '../../types/api';
 
 // ─── Shared fixtures ──────────────────────────────────────────────────────────
 
@@ -30,6 +32,72 @@ const makeLoan = (overrides: Partial<Loan>): Loan => ({
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('useLoans utility functions', () => {
+  describe('mapLoanListItemToLoan', () => {
+    it('maps backend LoanListItem DTO correctly to frontend Loan model', () => {
+      const dto: LoanListItem = {
+        id: 'dto-id-1',
+        loanId: 'chain-1',
+        amount: 500,
+        loanAmount: 400,
+        guarantee: 100,
+        interestRate: 8,
+        totalRepayment: 410.67,
+        totalPaid: 205.34,
+        remainingBalance: 205.33,
+        term: 4,
+        status: 'active',
+        merchant: { id: 'm-1', name: 'TechStore', logo: null },
+        nextPayment: { dueDate: '2026-07-20T00:00:00.000Z', amount: 102.66 },
+        createdAt: '2026-03-29T12:00:00.000Z',
+        completedAt: null,
+        defaultedAt: null,
+      };
+
+      const loan = mapLoanListItemToLoan(dto);
+      expect(loan.id).toBe('dto-id-1');
+      expect(loan.merchantName).toBe('TechStore');
+      expect(loan.merchantId).toBe('m-1');
+      expect(loan.amount).toBe(500);
+      expect(loan.amountPaid).toBe(205.34);
+      expect(loan.interestRate).toBe(8);
+      expect(loan.totalWithInterest).toBe(410.67);
+      expect(loan.status).toBe('active');
+      expect(loan.installmentCount).toBe(4);
+      expect(loan.installments).toEqual([]);
+      expect(loan.nextPaymentDue).toBe('2026-07-20T00:00:00.000Z');
+      expect(loan.nextPaymentAmount).toBe(102.66);
+      expect(loan.createdAt).toBe('2026-03-29T12:00:00.000Z');
+      expect(loan.completedAt).toBeNull();
+    });
+
+    it('handles missing merchant or nextPayment safely', () => {
+      const dto: LoanListItem = {
+        id: 'dto-id-2',
+        loanId: 'chain-2',
+        amount: 300,
+        loanAmount: 300,
+        guarantee: 0,
+        interestRate: 5,
+        totalRepayment: 315,
+        totalPaid: 315,
+        remainingBalance: 0,
+        term: 2,
+        status: 'completed',
+        merchant: { id: null, name: null, logo: null },
+        nextPayment: { dueDate: null, amount: null },
+        createdAt: '2026-01-01T00:00:00.000Z',
+        completedAt: '2026-02-01T00:00:00.000Z',
+        defaultedAt: null,
+      };
+
+      const loan = mapLoanListItemToLoan(dto);
+      expect(loan.merchantName).toBe('Unknown Merchant');
+      expect(loan.nextPaymentDue).toBeNull();
+      expect(loan.nextPaymentAmount).toBeNull();
+      expect(loan.completedAt).toBe('2026-02-01T00:00:00.000Z');
+    });
+  });
+
   describe('filterLoansByStatus', () => {
     const loans: Loan[] = [
       makeLoan({ id: '1', status: 'active' }),
@@ -176,9 +244,14 @@ describe('useLoans utility functions', () => {
       expect(hasOverdueInstallments(loan)).toBe(false);
     });
 
-    it('returns false for an empty installments array', () => {
-      const loan = makeLoan({ installments: [] });
+    it('returns false for an empty installments array when active and not past due', () => {
+      const loan = makeLoan({ installments: [], status: 'active', nextPaymentDue: '2099-01-01' });
       expect(hasOverdueInstallments(loan)).toBe(false);
+    });
+
+    it('returns true for an empty installments array when defaulted', () => {
+      const loan = makeLoan({ installments: [], status: 'defaulted' });
+      expect(hasOverdueInstallments(loan)).toBe(true);
     });
   });
 });
