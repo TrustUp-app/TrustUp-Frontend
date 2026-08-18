@@ -12,12 +12,14 @@
 ## Initial Setup
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/TrustUp-app/TrustUp-Frontend.git
 cd TrustUp-Frontend
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 npm install
 ```
@@ -33,6 +35,7 @@ The default configuration points to the production API. No additional setup need
 #### Option B: Run API Locally
 
 1. Clone and setup the backend repository:
+
 ```bash
    git clone https://github.com/TrustUp-app/TrustUp-API.git
    cd TrustUp-API
@@ -42,11 +45,13 @@ The default configuration points to the production API. No additional setup need
 2. Follow the [TrustUp API Contributing Guide](https://github.com/TrustUp-app/TrustUp-API/blob/main/docs/contributing.md)
 
 3. Start the API:
+
 ```bash
    npm run start:dev
 ```
 
 4. Update your frontend `.env`:
+
 ```env
    EXPO_PUBLIC_API_URL=http://localhost:4000/api/v1
 ```
@@ -54,11 +59,13 @@ The default configuration points to the production API. No additional setup need
 ### 5. Expo Configuration
 
 Install Expo CLI globally (if not already installed):
+
 ```bash
 npm install -g expo-cli
 ```
 
 Login to Expo (optional, needed for building):
+
 ```bash
 expo login
 ```
@@ -69,6 +76,7 @@ expo login
 
 1. Download Xcode from the Mac App Store
 2. Install Xcode Command Line Tools:
+
 ```bash
    xcode-select --install
 ```
@@ -80,6 +88,7 @@ expo login
 3. Download your preferred iOS Simulator
 
 #### Install CocoaPods
+
 ```bash
 sudo gem install cocoapods
 ```
@@ -97,6 +106,7 @@ sudo gem install cocoapods
 #### Configure Environment Variables
 
 Add to your `~/.bashrc`, `~/.zshrc`, or equivalent:
+
 ```bash
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
@@ -115,6 +125,7 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 ### 8. Run the Application
 
 #### Start Development Server
+
 ```bash
 npm start
 ```
@@ -122,6 +133,7 @@ npm start
 This opens the Expo Developer Tools in your browser.
 
 #### Run on iOS Simulator
+
 ```bash
 npm run ios
 ```
@@ -129,6 +141,7 @@ npm run ios
 Or press `i` in the Expo Developer Tools terminal.
 
 #### Run on Android Emulator
+
 ```bash
 npm run android
 ```
@@ -148,6 +161,7 @@ Or press `a` in the Expo Developer Tools terminal.
    - **Android**: Use the Expo Go app
 
 #### Run in Web Browser
+
 ```bash
 npm run web
 ```
@@ -157,30 +171,34 @@ npm run web
 ### Project Structure
 
 - `App.tsx` - Application entry point
-- `components/` - Reusable UI components
-  - `shared/` - Shared components (Layout, Navigation, etc.)
-- `pages/` - Screen components
-  - `InvestScreen/` - Investment flow screens
-  - `PayScreen/` - Payment flow screens
-- `types/` - TypeScript type definitions
-- `assets/` - Images, fonts, and static resources
+- `components/` - UI components
+  - `pages/` - Screen views (`InvestScreen`, `PayScreen`, `SignIn`, `SignUp`, `ProfileScreen`, `SettingsScreen`, `LoanHistoryScreen`, `LoanDetailScreen`, `MerchantListScreen`)
+  - `shared/` - Shared UI components (`BottomBar`, `Header`, `MainLayout`, `NotificationsPanel`, `Loader`)
+- `context/` - React Context providers (`auth.context.tsx`)
+- `hooks/` - Domain custom hooks (`auth/`, `invest/`, `loans/`, `merchants/`, `notifications/`, `pay/`, `profile/`, `reputation/`, `settings/`)
+- `lib/` - Shared helpers, API clients, and auth storage (`api.ts`, `api-client.ts`, `auth-storage.ts`)
+- `services/` - Service layer (`loans.service.ts`, `merchants.service.ts`, `reputation.service.ts`)
+- `theme/` - Visual styling tokens (`colors.json`)
+- `types/` - TypeScript type definitions (`Loan.ts`, `User.ts`, `Notification.ts`, `api.ts`, etc.)
+- `assets/` - Static images, icons, and logos
 
 ### Creating New Components
 
 1. Create component file in appropriate directory:
+
 ```typescript
    // components/shared/Button.tsx
    import React from 'react';
    import { TouchableOpacity, Text } from 'react-native';
-   
+
    interface ButtonProps {
      title: string;
      onPress: () => void;
    }
-   
+
    export const Button: React.FC<ButtonProps> = ({ title, onPress }) => {
      return (
-       <TouchableOpacity 
+       <TouchableOpacity
          onPress={onPress}
          className="bg-blue-500 px-4 py-2 rounded"
        >
@@ -191,19 +209,21 @@ npm run web
 ```
 
 2. Export from index file if needed:
+
 ```typescript
-   // components/shared/index.ts
-   export * from './Button';
+// components/shared/index.ts
+export * from './Button';
 ```
 
 ### Creating New Screens
 
-1. Create screen directory and component:
+1. Create screen component in `components/pages/`:
+
 ```typescript
-   // pages/ProfileScreen/ProfileScreen.tsx
+   // components/pages/ProfileScreen.tsx
    import React from 'react';
    import { View, Text } from 'react-native';
-   
+
    export const ProfileScreen: React.FC = () => {
      return (
        <View className="flex-1 p-4">
@@ -213,18 +233,10 @@ npm run web
    };
 ```
 
-2. Add screen-specific components in subdirectory:
-```
-   pages/ProfileScreen/
-   ├── ProfileScreen.tsx
-   └── components/
-       ├── ProfileHeader.tsx
-       └── ProfileSettings.tsx
-```
-
 ### Styling with NativeWind
 
 Use Tailwind utility classes with the `className` prop:
+
 ```typescript
 <View className="flex-1 bg-white p-4">
   <Text className="text-xl font-bold text-gray-900">
@@ -236,6 +248,7 @@ Use Tailwind utility classes with the `className` prop:
 ### Code Quality
 
 #### Linting
+
 ```bash
 # Check for linting errors
 npm run lint
@@ -245,12 +258,14 @@ npm run format
 ```
 
 #### Type Checking
+
 ```bash
 # TypeScript type checking
 npx tsc --noEmit
 ```
 
 ### Testing
+
 ```bash
 # Run unit tests (when configured)
 npm test
@@ -270,21 +285,25 @@ npm run test:coverage
 ### Prerequisites
 
 Install EAS CLI:
+
 ```bash
 npm install -g eas-cli
 ```
 
 Login to Expo:
+
 ```bash
 eas login
 ```
 
 Configure EAS:
+
 ```bash
 eas build:configure
 ```
 
 ### Build for iOS
+
 ```bash
 # Development build
 eas build --platform ios --profile development
@@ -296,6 +315,7 @@ eas build --platform ios --profile production
 **Note**: iOS production builds require an Apple Developer account ($99/year).
 
 ### Build for Android
+
 ```bash
 # Development build
 eas build --platform android --profile development
@@ -305,6 +325,7 @@ eas build --platform android --profile production
 ```
 
 ### Generate Native Projects Locally
+
 ```bash
 npm run prebuild
 ```
@@ -320,6 +341,7 @@ This creates `ios/` and `android/` directories for advanced customization.
 - Group related components in directories
 
 ### File Organization
+
 ```
 components/
 ├── shared/           # Reusable across entire app
@@ -337,6 +359,7 @@ components/
 - Avoid `any` types
 - Use strict mode
 - Export types for reusability
+
 ```typescript
 // types/Loan.ts
 export interface Loan {
@@ -370,14 +393,15 @@ export const LoanCard: React.FC<LoanCardProps> = ({ loan, onPress }) => {
 - Use React hooks (`useState`, `useEffect`) for local state
 - Consider Context API for shared state
 - Implement custom hooks for reusable logic
+
 ```typescript
 // hooks/useAuth.ts
 export const useAuth = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Authentication logic
-  
+
   return { user, loading, login, logout };
 };
 ```
@@ -385,6 +409,7 @@ export const useAuth = () => {
 ## Common Issues
 
 ### Metro Bundler Cache Issues
+
 ```bash
 # Clear Metro bundler cache
 npx expo start -c
@@ -394,6 +419,7 @@ rm -rf node_modules/.cache
 ```
 
 ### iOS Simulator Not Launching
+
 ```bash
 # Reset iOS Simulator
 xcrun simctl erase all
@@ -406,6 +432,7 @@ npm run ios
 ```
 
 ### Android Emulator Issues
+
 ```bash
 # List available AVDs
 emulator -list-avds
@@ -425,6 +452,7 @@ emulator -avd Pixel_5_API_33 -no-snapshot-load
 4. Clear cache: `npx expo start -c`
 
 ### TypeScript Errors
+
 ```bash
 # Regenerate TypeScript definitions
 npx expo customize tsconfig.json
@@ -451,6 +479,7 @@ npx tsc --noEmit
 ## Pull Request Process
 
 1. **Create a feature branch**:
+
 ```bash
    git checkout -b feature/my-feature
 ```
@@ -458,17 +487,20 @@ npx tsc --noEmit
 2. **Make your changes** following the conventions above
 
 3. **Test your changes**:
+
 ```bash
    npm run lint
    npm test
 ```
 
 4. **Commit with descriptive message**:
+
 ```bash
    git commit -m "feat: add loan application form"
 ```
 
 5. **Push to your fork**:
+
 ```bash
    git push origin feature/my-feature
 ```
