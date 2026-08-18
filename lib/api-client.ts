@@ -1,6 +1,8 @@
 import { getToken as getAccessToken, clearToken } from './token-storage';
 import { notifyUnauthorized } from './auth-events';
 import { FieldErrors } from './api';
+import { refreshAuthToken } from './auth-refresh';
+
 /**
  * Thin HTTP client for the TrustUp API.
  *
@@ -8,6 +10,7 @@ import { FieldErrors } from './api';
  *   with `/api/v1` appended automatically (per the frontend .env convention).
  * - Attaches the JWT Bearer token from `token-storage` when present.
  * - Throws `ApiClientError` on non-2xx with the backend's message when available.
+ * - On 401, attempts single-flight refresh with refresh token and retries once.
  *
  * NOTE: this is the pre-existing client for reputation/merchants/loans/pay.
  * The auth flow (#60) uses lib/api.ts instead. See lib/token-storage.ts for
@@ -51,7 +54,8 @@ async function request<T>(
   method: 'GET' | 'POST',
   path: string,
   body?: unknown,
-  options?: RequestOptions
+  options?: RequestOptions,
+  isRetry = false
 ): Promise<T> {
   const token = await getAccessToken();
   const headers: Record<string, string> = { Accept: 'application/json' };
@@ -72,6 +76,14 @@ async function request<T>(
   }
 
   if (res.status === 401) {
+    const isAuthEndpoint = path.startsWith('/auth/login') || path.startsWith('/auth/refresh');
+    if (!isRetry && !isAuthEndpoint) {
+      const refreshed = await refreshAuthToken(API_BASE_URL);
+      if (refreshed) {
+        return request<T>(method, path, body, options, true);
+      }
+    }
+
     await clearToken();
     notifyUnauthorized();
     throw new ApiClientError('Session expired. Please sign in again.', 401);
