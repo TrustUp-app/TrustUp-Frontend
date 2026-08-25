@@ -7,6 +7,6 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "types": ["jest"]
+    "types": ["jest", "node"]
   }
 }

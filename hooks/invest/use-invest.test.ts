@@ -2,20 +2,20 @@ import { formatCurrency, validateDepositAmount } from './use-invest';
 
 describe('useInvest utility functions', () => {
   describe('formatCurrency', () => {
-    it('returns "0.00" for empty or invalid input', () => {
-      expect(formatCurrency('')).toBe('0.00');
-      expect(formatCurrency('abc')).toBe('0.00');
+    it('returns empty string for empty or invalid input', () => {
+      expect(formatCurrency('')).toBe('');
+      expect(formatCurrency('abc')).toBe('');
     });
 
-    it('formats valid numbers to 2 decimal places', () => {
-      expect(formatCurrency('10')).toBe('10.00');
-      expect(formatCurrency('10.5')).toBe('10.50');
+    it('formats valid numbers preserving decimal precision', () => {
+      expect(formatCurrency('10')).toBe('10');
+      expect(formatCurrency('10.5')).toBe('10.5');
       expect(formatCurrency('10.55')).toBe('10.55');
     });
 
-    it('filters out non-numeric characters', () => {
+    it('filters out non-numeric characters and adds thousand separators', () => {
       expect(formatCurrency('$10.50')).toBe('10.50');
-      expect(formatCurrency('10,000.50')).toBe('10000.50');
+      expect(formatCurrency('10,000.50')).toBe('10,000.50');
     });
   });
 
