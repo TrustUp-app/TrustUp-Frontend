@@ -1,7 +1,7 @@
-import React, { ReactNode, useState, isValidElement, cloneElement } from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BottomBar } from './BottomBar';
+import { BottomBar, type TabId } from './BottomBar';
 import { Header } from './Header';
 import { NotificationsPanel } from './NotificationsPanel';
 import { Toast } from './Toast';
@@ -13,27 +13,18 @@ import MerchantsScreen from '../pages/MerchantsScreen';
 import MerchantDetailScreen from '../pages/MerchantDetailScreen';
 import ProfileScreen from '../pages/ProfileScreen';
 import EditProfileScreen from '../pages/EditProfileScreen';
+import PayScreen from '../pages/pay/PayScreen';
+import InvestScreen from '../pages/InvestScreen';
 import { useProfile, getInitials } from '../../hooks/profile/use-profile';
-import { useNotifications } from '../../hooks/notifications/use-notifications';
 import type { Loan } from '../../types/Loan';
 import type { MerchantSummary } from '../../types/api';
 
 interface MainLayoutProps {
-  children: ReactNode;
-  /** Called when the user disconnects the wallet or signs out. */
   onSignOut?: () => void;
 }
 
-/** Callbacks injected into the direct child of MainLayout for navigation + toasts. */
-interface PayScreenChildProps {
-  onLoanHistoryPress?: () => void;
-  onViewReputationPress?: () => void;
-  onExploreMerchantsPress?: () => void;
-  onToast?: (message: string) => void;
-}
-
-export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
-  const [activeTab, setActiveTab] = useState('home');
+export const MainLayout = ({ onSignOut }: MainLayoutProps) => {
+  const [activeTab, setActiveTab] = useState<TabId>('pay');
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLoanHistoryOpen, setIsLoanHistoryOpen] = useState(false);
@@ -41,14 +32,13 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
   const [isReputationOpen, setIsReputationOpen] = useState(false);
   const [isMerchantsOpen, setIsMerchantsOpen] = useState(false);
   const [isMerchantDetailOpen, setIsMerchantDetailOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [selectedMerchant, setSelectedMerchant] = useState<MerchantSummary | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   const { profile, isLoading, error, disconnectWallet, saveProfile } = useProfile();
-  const { unreadCount } = useNotifications();
 
   const handleLoanPress = (loan: Loan) => {
     setSelectedLoan(loan);
@@ -103,15 +93,17 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
     isProfileOpen ||
     isEditProfileOpen;
 
-  // Inject callbacks into children so PayScreen can trigger navigation
-  const enhancedChildren = isValidElement(children)
-    ? cloneElement(children as React.ReactElement<PayScreenChildProps>, {
-      onLoanHistoryPress: () => setIsLoanHistoryOpen(true),
-      onViewReputationPress: () => setIsReputationOpen(true),
-      onExploreMerchantsPress: () => setIsMerchantsOpen(true),
-      onToast: (message: string) => setToastMessage(message),
-    })
-    : children;
+  const baseScreen =
+    activeTab === 'pay' ? (
+      <PayScreen
+        onLoanHistoryPress={() => setIsLoanHistoryOpen(true)}
+        onViewReputationPress={() => setIsReputationOpen(true)}
+        onExploreMerchantsPress={() => setIsMerchantsOpen(true)}
+        onToast={(message: string) => setToastMessage(message)}
+      />
+    ) : (
+      <InvestScreen />
+    );
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
@@ -129,13 +121,22 @@ export const MainLayout = ({ children, onSignOut }: MainLayoutProps) => {
             />
           )}
 
-          <View className="flex-1">{enhancedChildren}</View>
+          <View className="flex-1">{baseScreen}</View>
         </View>
         {!hasOverlay && (
-          <View className="absolute bottom-0 left-0 right-0 z-10 h-[60px] bg-transparent">
-            <BottomBar activeTab={activeTab} setActiveTab={setActiveTab} />
-          </View>
+          <Header
+            displayName={profile?.displayName}
+            avatarUrl={profile?.avatarUrl}
+            initials={profile ? getInitials(profile.displayName) : undefined}
+            onNotificationsPress={() => setIsNotificationsOpen(true)}
+            onSettingsPress={() => setIsSettingsOpen(true)}
+            onProfilePress={() => setIsProfileOpen(true)}
+          />
         )}
+
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          {enhancedChildren}
+        </ScrollView>
 
         {/* Settings Overlay */}
         {isSettingsOpen && (

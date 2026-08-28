@@ -1,18 +1,20 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 // Centralized color palette shared with Tailwind
 const colors = require('../../theme/colors.json');
 
+export type TabId = 'pay' | 'invest';
+
 interface BottomBarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+  activeTab: TabId;
+  setActiveTab: (tab: TabId) => void;
 }
 
 export const BottomBar = ({ activeTab, setActiveTab }: BottomBarProps) => {
   const TABS = [
-    { id: 'cards', icon: 'card-outline', activeIcon: 'card' },
-    { id: 'analytics', icon: 'trending-up', activeIcon: 'trending-up' },
+    { id: 'pay' as TabId, label: 'Pay', icon: 'wallet-outline', activeIcon: 'wallet' },
+    { id: 'invest' as TabId, label: 'Invest', icon: 'trending-up-outline', activeIcon: 'trending-up' },
   ] as const;
 
   return (
@@ -27,12 +29,19 @@ export const BottomBar = ({ activeTab, setActiveTab }: BottomBarProps) => {
               key={tab.id}
               onPress={() => setActiveTab(tab.id)}
               className="flex-1 items-center justify-center py-2"
-              activeOpacity={0.7}>
+              activeOpacity={0.7}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={tab.label}>
               <Ionicons
                 name={iconName}
                 size={24}
                 color={isActive ? colors.text : colors.textMuted}
               />
+              <Text
+                className={`mt-1 text-[10px] font-medium ${isActive ? 'text-text' : 'text-textMuted'}`}>
+                {tab.label}
+              </Text>
             </TouchableOpacity>
           );
         })}

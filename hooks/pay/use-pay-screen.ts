@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getMyReputation } from '../../services/reputation.service';
 import { getAvailableCredit, getMyLoans } from '../../services/loans.service';
-import { ApiClientError } from '../../lib/api-client';
+import { ApiError } from '../../lib/api';
 import type { LoanListItem, LoanNextPayment, ReputationTier } from '../../types/api';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ export interface UsePayScreenReturn {
  *   - borrowing-capacity breakdown            (GET /loans/available-credit)
  *   - the current active loan                 (GET /loans/my-loans?status=active)
  *
- * All calls require a JWT Bearer token (see lib/token-storage). When no API
+ * All calls require a JWT Bearer token (see lib/auth-storage). When no API
  * base URL is configured the services return dev seeds shaped to the real DTOs.
  */
 export const usePayScreen = (): UsePayScreenReturn => {
@@ -95,8 +95,7 @@ export const usePayScreen = (): UsePayScreenReturn => {
         setActiveLoan(loans.data[0] ?? null);
       } catch (err) {
         if (signal.aborted || !isMountedRef.current) return;
-        const message =
-          err instanceof ApiClientError ? err.message : 'Failed to load your Pay data';
+        const message = err instanceof ApiError ? err.message : 'Failed to load your Pay data';
         setError(message);
       } finally {
         if (isMountedRef.current && !signal.aborted) setIsLoading(false);

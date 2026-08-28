@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getMyReputation } from '../../services/reputation.service';
-import { ApiClientError } from '../../lib/api-client';
+import { ApiError } from '../../lib/api';
 import type { ReputationResponse, ReputationTier } from '../../types/api';
 
 /** Human-readable label for each backend tier. */
@@ -47,7 +47,7 @@ export const useReputation = (): UseReputationReturn => {
         setReputation(data);
       } catch (err) {
         if (signal.aborted || !isMountedRef.current) return;
-        setError(err instanceof ApiClientError ? err.message : 'Failed to load reputation');
+        setError(err instanceof ApiError ? err.message : 'Failed to load reputation');
       } finally {
         if (isMountedRef.current && !signal.aborted) setIsLoading(false);
       }

@@ -50,6 +50,7 @@ The default configuration points to the production API. No additional setup need
 ```env
    EXPO_PUBLIC_API_URL=http://localhost:4000/api/v1
 ```
+The value may omit the `/api/v1` suffix; the client appends it automatically if missing.
 
 ### 5. Expo Configuration
 
@@ -158,12 +159,19 @@ npm run web
 
 - `App.tsx` - Application entry point
 - `components/` - Reusable UI components
+  - `pages/` - Screen components (e.g. `InvestScreen/`, `SignIn/`, `CreateAccountScreen/`)
   - `shared/` - Shared components (Layout, Navigation, etc.)
-- `pages/` - Screen components
-  - `InvestScreen/` - Investment flow screens
-  - `PayScreen/` - Payment flow screens
+- `hooks/` - Domain-specific custom hooks
+- `services/` - API service modules
+- `lib/` - API client, storage, and other utilities
+- `context/` - React context providers (e.g. auth)
 - `types/` - TypeScript type definitions
+- `theme/` - Design tokens (colors, etc.)
 - `assets/` - Images, fonts, and static resources
+
+### Import Aliases
+
+The `@/*` path alias resolves to the repository root (`tsconfig.json` sets `baseUrl: "."` and `"@/*": ["./*"]`), so `@/types/Loan` resolves to `types/Loan.ts`. You can also use plain relative/root imports (e.g. `components/pages/InvestScreen`) since `baseUrl` is set to the project root.
 
 ### Creating New Components
 
@@ -200,7 +208,7 @@ npm run web
 
 1. Create screen directory and component:
 ```typescript
-   // pages/ProfileScreen/ProfileScreen.tsx
+   // components/pages/ProfileScreen/ProfileScreen.tsx
    import React from 'react';
    import { View, Text } from 'react-native';
    
@@ -215,7 +223,7 @@ npm run web
 
 2. Add screen-specific components in subdirectory:
 ```
-   pages/ProfileScreen/
+   components/pages/ProfileScreen/
    ├── ProfileScreen.tsx
    └── components/
        ├── ProfileHeader.tsx
@@ -322,13 +330,14 @@ This creates `ios/` and `android/` directories for advanced customization.
 ### File Organization
 ```
 components/
-├── shared/           # Reusable across entire app
+├── shared/               # Reusable across entire app
 │   ├── Button.tsx
 │   └── Input.tsx
-└── LoanScreen/           # Domain-specific components
-    └── LoanScreen.tsx
-    ├── components.tsx
-    └── LoanCard.tsx
+└── pages/
+    └── LoanScreen/       # Domain-specific screen
+        ├── LoanScreen.tsx
+        └── components/
+            └── LoanCard.tsx
 ```
 
 ### TypeScript

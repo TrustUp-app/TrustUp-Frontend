@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getMerchantById } from '../../services/merchants.service';
-import { ApiClientError } from '../../lib/api-client';
+import { ApiError } from '../../lib/api';
 import type { MerchantDetail } from '../../types/api';
 
 export interface UseMerchantDetailReturn {
@@ -37,7 +37,7 @@ export const useMerchantDetail = (merchantId: string): UseMerchantDetailReturn =
         setMerchant(res);
       } catch (err) {
         if (signal.aborted || !isMountedRef.current) return;
-        setError(err instanceof ApiClientError ? err.message : 'Failed to load merchant');
+        setError(err instanceof ApiError ? err.message : 'Failed to load merchant');
       } finally {
         if (isMountedRef.current && !signal.aborted) setIsLoading(false);
       }

@@ -19,6 +19,7 @@
     "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.13",
     "expo-image-picker": "^17.0.10",
+    "expo-linking": "^57.0.4",
     "expo-router": "^6.0.21",
     "expo-secure-store": "~15.0.8",
     "expo-status-bar": "~3.0.8",
@@ -47,6 +48,6 @@
     "tailwindcss": "^3.4.0",
     "typescript": "~5.9.2"
   },
-  "main": "node_modules/expo/AppEntry.js",
+  "main": "expo-router/entry",
   "private": true
 }

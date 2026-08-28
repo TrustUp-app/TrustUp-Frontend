@@ -60,17 +60,19 @@ TrustUp-Frontend/
 ├── .expo/                      # Expo configuration cache
 ├── assets/                     # Static assets (images, fonts)
 ├── components/                 # Reusable UI components
-│   ├── shared/                # Shared components across app
-│   │   ├── BottomBar.tsx     # Bottom navigation bar
-│   │   ├── Header.tsx        # App header component
-│   │   ├── MainLayout.tsx    # Main app layout wrapper
-├── pages/                      # Screen pages
-│   ├── InvestScreen/          # Investment screen
-│   │   ├── components/       # InvestScreen-specific components
-│   │   └── InvestScreen.tsx  # Main invest screen
-│   └── PayScreen/             # Payment screen
-│       ├── components/       # PayScreen-specific components
-│       └── PayScreen.tsx     # Main payment screen
+│   ├── pages/                 # Screen components
+│   │   ├── InvestScreen/     # Investment screen
+│   │   ├── SignIn/           # Sign in screen
+│   │   └── CreateAccountScreen/ # Create account screen
+│   └── shared/                # Shared components across app
+│       ├── BottomBar.tsx     # Bottom navigation bar
+│       ├── Header.tsx        # App header component
+│       └── MainLayout.tsx    # Main app layout wrapper
+├── context/                    # React context providers (e.g. auth)
+├── hooks/                      # Domain-specific custom hooks
+├── lib/                        # API client, storage, and other utilities
+├── services/                   # API service modules
+├── theme/                      # Design tokens (colors, etc.)
 ├── types/                      # TypeScript type definitions
 ├── node_modules/              # Dependencies
 ├── .gitignore                 # Git ignore rules

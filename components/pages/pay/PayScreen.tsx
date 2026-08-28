@@ -9,7 +9,7 @@ import {
 } from '../../../hooks/pay/use-pay-screen';
 import { formatLoanAmount, getDueDateLabel } from '../../../hooks/loans/use-loans';
 import { repayLoan } from '../../../services/loans.service';
-import { ApiClientError } from '../../../lib/api-client';
+import { ApiError } from '../../../lib/api';
 import { PayConfirmationSheet } from './PayConfirmationSheet';
 // Centralized color palette shared with Tailwind
 const colors = require('../../../theme/colors.json');
@@ -88,7 +88,7 @@ const PayScreen = ({
       if (!isMountedRef.current) return;
       setPayState('failed');
       setPayError(
-        err instanceof ApiClientError ? err.message : 'Payment failed. Please try again.'
+        err instanceof ApiError ? err.message : 'Payment failed. Please try again.'
       );
     }
   }, [activeLoan, nextPayment, onToast, refresh]);

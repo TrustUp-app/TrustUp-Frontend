@@ -1,4 +1,4 @@
-import { apiClient, isApiConfigured } from '../lib/api-client';
+import { apiClient, isApiConfigured } from '../lib/api';
 import type { ApiEnvelope, ReputationResponse } from '../types/api';
 
 /**

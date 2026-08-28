@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { listMerchants } from '../../services/merchants.service';
-import { ApiClientError } from '../../lib/api-client';
+import { ApiError } from '../../lib/api';
 import type { MerchantSummary } from '../../types/api';
 
 const PAGE_SIZE = 20;
@@ -53,7 +53,7 @@ export const useMerchants = (): UseMerchantsReturn => {
       setHasMore(pageOffset + res.merchants.length < res.total);
     } catch (err) {
       if (controller.signal.aborted || !isMountedRef.current) return;
-      setError(err instanceof ApiClientError ? err.message : 'Failed to load merchants');
+      setError(err instanceof ApiError ? err.message : 'Failed to load merchants');
     } finally {
       if (isMountedRef.current && !controller.signal.aborted) setIsLoading(false);
     }

@@ -1,4 +1,4 @@
-import { apiClient, ApiClientError, isApiConfigured } from '../lib/api-client';
+import { apiClient, ApiError, isApiConfigured } from '../lib/api';
 import type { MerchantDetail, MerchantListResponse, MerchantSummary } from '../types/api';
 
 /**
@@ -98,7 +98,7 @@ const DEV_MERCHANT_DETAILS: Record<string, MerchantDetail> = {
 export async function getMerchantById(id: string, signal?: AbortSignal): Promise<MerchantDetail> {
   if (!isApiConfigured) {
     const merchant = DEV_MERCHANT_DETAILS[id];
-    if (!merchant) throw new ApiClientError('Merchant not found', 404);
+    if (!merchant) throw new ApiError(404, 'Merchant not found');
     return merchant;
   }
   return apiClient.get<MerchantDetail>(`/merchants/${id}`, { signal });
