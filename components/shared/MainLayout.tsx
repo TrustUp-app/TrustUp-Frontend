@@ -16,6 +16,7 @@ import EditProfileScreen from '../pages/EditProfileScreen';
 import PayScreen from '../pages/pay/PayScreen';
 import InvestScreen from '../pages/InvestScreen';
 import { useProfile, getInitials } from '../../hooks/profile/use-profile';
+import { useNotifications } from '../../hooks/notifications/use-notifications';
 import type { Loan } from '../../types/Loan';
 import type { MerchantSummary } from '../../types/api';
 
@@ -39,6 +40,7 @@ export const MainLayout = ({ onSignOut }: MainLayoutProps) => {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   const { profile, isLoading, error, disconnectWallet, saveProfile } = useProfile();
+  const { unreadCount } = useNotifications();
 
   const handleLoanPress = (loan: Loan) => {
     setSelectedLoan(loan);
@@ -124,19 +126,10 @@ export const MainLayout = ({ onSignOut }: MainLayoutProps) => {
           <View className="flex-1">{baseScreen}</View>
         </View>
         {!hasOverlay && (
-          <Header
-            displayName={profile?.displayName}
-            avatarUrl={profile?.avatarUrl}
-            initials={profile ? getInitials(profile.displayName) : undefined}
-            onNotificationsPress={() => setIsNotificationsOpen(true)}
-            onSettingsPress={() => setIsSettingsOpen(true)}
-            onProfilePress={() => setIsProfileOpen(true)}
-          />
+          <View className="absolute bottom-0 left-0 right-0 z-10 h-[60px] bg-transparent">
+            <BottomBar activeTab={activeTab} setActiveTab={setActiveTab} />
+          </View>
         )}
-
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {enhancedChildren}
-        </ScrollView>
 
         {/* Settings Overlay */}
         {isSettingsOpen && (

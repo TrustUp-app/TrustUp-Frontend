@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useRouter } from 'expo-router';
-import InvestScreen from '../../components/pages/InvestScreen';
 import { MainLayout } from '../../components/shared/MainLayout';
 
 export default function HomeTab() {
@@ -10,9 +9,5 @@ export default function HomeTab() {
     router.replace('/sign-in');
   }, [router]);
 
-  return (
-    <MainLayout onSignOut={handleSignOut}>
-      <InvestScreen />
-    </MainLayout>
-  );
+  return <MainLayout onSignOut={handleSignOut} />;
 }
