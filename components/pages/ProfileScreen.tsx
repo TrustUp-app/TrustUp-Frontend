@@ -16,6 +16,11 @@ interface ProfileScreenProps {
   onEditPress: () => void;
   /** Disconnects the wallet (clears token) then notifies the root to sign out. */
   onDisconnect: () => void;
+  /**
+   * Hides the back button and header. Use when Profile is the root of a tab,
+   * where there is no parent screen to navigate back to.
+   */
+  hideBack?: boolean;
 }
 
 const formatMemberSince = (iso: string): string => {
@@ -40,6 +45,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onBack,
   onEditPress,
   onDisconnect,
+  hideBack = false,
 }) => {
   const insets = useSafeAreaInsets();
   const [copied, setCopied] = useState(false);
@@ -64,23 +70,25 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           alignItems: 'center',
           gap: 12,
         }}>
-        <TouchableOpacity
-          onPress={onBack}
-          activeOpacity={0.7}
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: 19,
-            backgroundColor: colors.white,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}>
-          <Ionicons name="chevron-back" size={20} color={colors.text} />
-        </TouchableOpacity>
+        {hideBack ? null : (
+          <TouchableOpacity
+            onPress={onBack}
+            activeOpacity={0.7}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 19,
+              backgroundColor: colors.white,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}>
+            <Ionicons name="chevron-back" size={20} color={colors.text} />
+          </TouchableOpacity>
+        )}
         <Text style={{ color: colors.text, fontSize: 20, fontWeight: '700' }}>Profile</Text>
       </View>
 
