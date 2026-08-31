@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useAuth } from '../../context/auth.context';
+import { useAuth } from '@/context/auth.context';
 import { ApiError } from '../../lib/api';
 
 export interface SignInFormState {

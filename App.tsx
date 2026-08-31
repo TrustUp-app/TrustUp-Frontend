@@ -4,7 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import SignInScreen from 'components/pages/SignIn';
 import CreateAccountScreen from 'components/pages/CreateAccountScreen';
 import { MainLayout } from 'components/shared/MainLayout';
-import { AuthProvider, useAuth } from 'context/auth.context';
+import { AuthProvider, useAuth } from '@/context/auth.context';
 import './global.css';
 
 const colors = require('./theme/colors.json');

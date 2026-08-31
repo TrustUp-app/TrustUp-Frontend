@@ -8,5 +8,8 @@
       "@/*": ["./*"]
     },
     "types": ["jest", "node"]
-  }
+  },
+  "exclude": [
+    "TrustUp-API"
+  ]
 }

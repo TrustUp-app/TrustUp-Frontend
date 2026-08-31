@@ -9,5 +9,10 @@ export default function SignIn() {
     router.replace('/(tabs)');
   }, [router]);
 
-  return <SignInScreen onSignInSuccess={handleSignInSuccess} />;
+  return (
+    <SignInScreen
+      onSignInSuccess={handleSignInSuccess}
+      onNavigateToCreateAccount={() => router.push('/create-account')}
+    />
+  );
 }

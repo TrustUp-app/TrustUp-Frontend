@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { useAuth } from '../../context/auth.context';
+import { useAuth } from '@/context/auth.context';
 import { apiFetchForm, ApiError } from '../../lib/api';
 
 /**
