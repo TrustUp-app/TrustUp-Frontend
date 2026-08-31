@@ -94,8 +94,8 @@ export default function NotificationsTab() {
           avatarUrl={profile?.avatarUrl}
           initials={profile ? getInitials(profile.displayName) : undefined}
           onNotificationsPress={() => {}}
-          onSettingsPress={() => router.push('/settings' as any)}
-          onProfilePress={() => router.push('/profile' as any)}
+          onSettingsPress={() => router.push('/settings')}
+          onProfilePress={() => router.push('/(tabs)/profile')}
         />
 
         <View className="flex-1">
