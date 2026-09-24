@@ -16,6 +16,7 @@ import EditProfileScreen from '../pages/EditProfileScreen';
 import PayScreen from '../pages/pay/PayScreen';
 import InvestScreen from '../pages/InvestScreen';
 import { useProfile, getInitials } from '../../hooks/profile/use-profile';
+import { useAuth } from '@/context/auth.context';
 import { useNotifications } from '../../hooks/notifications/use-notifications';
 import type { Loan } from '../../types/Loan';
 import type { MerchantSummary } from '../../types/api';
@@ -40,6 +41,7 @@ export const MainLayout = ({ onSignOut }: MainLayoutProps) => {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   const { profile, isLoading, error, disconnectWallet, saveProfile } = useProfile();
+  const { signOut } = useAuth();
   const { unreadCount } = useNotifications();
 
   const handleLoanPress = (loan: Loan) => {
@@ -73,6 +75,7 @@ export const MainLayout = ({ onSignOut }: MainLayoutProps) => {
 
   const handleDisconnect = async () => {
     await disconnectWallet();
+    await signOut();
     setIsProfileOpen(false);
     setIsSettingsOpen(false);
     onSignOut?.();
@@ -80,6 +83,7 @@ export const MainLayout = ({ onSignOut }: MainLayoutProps) => {
 
   const handleSignOut = async () => {
     await disconnectWallet();
+    await signOut();
     setIsSettingsOpen(false);
     onSignOut?.();
   };

@@ -2,10 +2,12 @@ import { useCallback } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import ProfileScreen from '../../components/pages/ProfileScreen';
 import { useProfile } from '../../hooks/profile/use-profile';
+import { useAuth } from '@/context/auth.context';
 
 export default function ProfileTab() {
   const router = useRouter();
-  const { profile, isLoading, error, disconnectWallet, refresh } = useProfile();
+  const { profile, isLoading, error, refresh } = useProfile();
+  const { signOut } = useAuth();
 
   // Reload the latest profile whenever the tab regains focus (e.g. after
   // returning from Edit Profile) so edited fields are reflected.
@@ -20,9 +22,9 @@ export default function ProfileTab() {
   }, [router]);
 
   const handleDisconnect = useCallback(async () => {
-    await disconnectWallet();
+    await signOut();
     router.replace('/sign-in');
-  }, [router, disconnectWallet]);
+  }, [router, signOut]);
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
