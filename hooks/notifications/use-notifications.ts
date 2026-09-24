@@ -2,12 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Notification } from '../../types/Notification';
 import { notificationsService } from '../../services/notifications.service';
 import { isApiConfigured } from '../../lib/api';
-
 const DEV_MOCK: Notification[] = [
   { id: '1', type: 'payment', title: 'Payment Due Soon', body: 'Your $50.00 payment is due in 3 days.', timestamp: '2 min ago', isRead: false },
   { id: '2', type: 'credit', title: 'Credit Increased', body: 'Your credit increased to $320.00.', timestamp: '1 hour ago', isRead: false },
 ];
-
 export interface UseNotificationsReturn {
   notifications: Notification[];
   unreadCount: number;
@@ -18,12 +16,10 @@ export interface UseNotificationsReturn {
   deleteNotification: (id: string) => void;
   refresh: () => void;
 }
-
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const fetchNotifications = useCallback(async () => {
     setIsLoading(true); setError(null);
     try {
@@ -33,21 +29,17 @@ export const useNotifications = () => {
     } catch { setError('Failed to load notifications'); }
     finally { setIsLoading(false); }
   }, []);
-
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
-
   const markAsRead = useCallback((id: string) => {
     let previous: Notification[] = [];
     setNotifications(prev => { previous = prev; return prev.map(n => n.id === id? {...n, isRead: true } : n); });
     notificationsService.markAsRead(id).catch(() => { setNotifications(previous); setError('Failed to mark as read'); });
   }, []);
-
-  const markAllAsRead = useCallback(() => {
+   const markAllAsRead = useCallback(() => {
     let previous: Notification[] = [];
     setNotifications(prev => { previous = prev; return prev.map(n => ({...n, isRead: true })); });
     notificationsService.markAllAsRead().catch(() => { setNotifications(previous); setError('Failed to mark all as read'); });
   }, []);
-
   const deleteNotification = useCallback((id: string) => {
     setNotifications(prev => prev.filter(n => n.id!== id));
   }, []);
