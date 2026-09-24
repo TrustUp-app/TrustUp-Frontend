@@ -31,23 +31,17 @@ function mapApiToUi(n: ApiNotification): Notification {
 
 export const notificationsService = {
   async getAll(): Promise<{ notifications: Notification[]; unreadCount: number }> {
-    if (!isApiConfigured()) {
-      throw new Error('API not configured');
-    }
+    if (!isApiConfigured()) throw new Error('API not configured');
     const res = await apiFetch<NotificationsResponse | ApiNotification[]>('/notifications');
     const list = Array.isArray(res) ? res : res.data;
     const mapped = list.map(mapApiToUi);
-    const unreadCount = !Array.isArray(res) && res.unreadCount !== undefined
-      ? res.unreadCount
-      : mapped.filter(m => !m.isRead).length;
+    const unreadCount = !Array.isArray(res) && res.unreadCount !== undefined ? res.unreadCount : mapped.filter(m => !m.isRead).length;
     return { notifications: mapped, unreadCount };
   },
-
   async markAsRead(id: string): Promise<void> {
     if (!isApiConfigured()) return;
     await apiFetch(`/notifications/${id}/read`, { method: 'PATCH' });
   },
-
   async markAllAsRead(): Promise<void> {
     if (!isApiConfigured()) return;
     await apiFetch('/notifications/read-all', { method: 'PATCH' });
