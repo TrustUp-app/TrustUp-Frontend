@@ -3,7 +3,6 @@ import type { Notification } from '../../types/Notification';
 import { notificationsService } from '../../services/notifications.service';
 import { isApiConfigured } from '../../lib/api';
 
-// DEV fallback - only used when API not configured, same as loans/merchants
 const DEV_MOCK: Notification[] = [
   { id: '1', type: 'payment', title: 'Payment Due Soon', body: 'Your $50.00 payment is due in 3 days.', timestamp: '2 min ago', isRead: false },
   { id: '2', type: 'credit', title: 'Credit Increased', body: 'Your credit increased to $320.00.', timestamp: '1 hour ago', isRead: false },
@@ -30,7 +29,6 @@ export const useNotifications = (): UseNotificationsReturn => {
     setError(null);
     try {
       if (!isApiConfigured()) {
-        // Keep DEV seed behind isApiConfigured as per issue note
         setNotifications(DEV_MOCK);
         return;
       }
@@ -64,7 +62,6 @@ export const useNotifications = (): UseNotificationsReturn => {
   }, []);
 
   const deleteNotification = useCallback((id: string) => {
-    // No delete endpoint documented - stays local-only, comment why
     setNotifications(prev => prev.filter(n => n.id!== id));
   }, []);
 
