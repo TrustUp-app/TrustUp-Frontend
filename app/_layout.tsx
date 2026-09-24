@@ -9,9 +9,11 @@ const colors = require('../theme/colors.json');
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootNavigator />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <RootNavigator />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
 
@@ -37,20 +39,17 @@ function RootNavigator() {
 
   if (isLoading) {
     return (
-      <SafeAreaProvider>
-        <View
-          style={{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: colors.background,
-          }}>
-          <ActivityIndicator size="large" color={colors.cta} />
-        </View>
-      </SafeAreaProvider>
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.background,
+        }}>
+        <ActivityIndicator size="large" color={colors.cta} />
+      </View>
     );
   }
 
-export default function RootLayout() {
-  return <SafeAreaProvider><AuthProvider><Gate /></AuthProvider></SafeAreaProvider>;
+  return <Slot />;
 }
