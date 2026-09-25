@@ -3,6 +3,7 @@ import type { Notification } from '../../types/Notification';
 import { notificationsService } from '../../services/notifications.service';
 import { isApiConfigured } from '../../lib/api';
 
+// ─── Mock Data ────────────────────────────────────────────────────────────────
 const DEV_MOCK: Notification[] = [
   {
     id: '1',
@@ -18,22 +19,47 @@ const DEV_MOCK: Notification[] = [
     title: 'Credit Increased',
     body: 'Your credit increased to $320.00.',
     timestamp: '1 hour ago',
+    isRead: false,
+  },
+  {
+    id: '3',
+    type: 'merchant',
+    title: 'New Merchant Available',
+    body: 'TechStore has joined TrustUp. Shop with BNPL now.',
+    timestamp: '3 hours ago',
+    isRead: false,
+  },
+  {
+    id: '4',
+    type: 'reputation',
+    title: 'Reputation Updated',
+    body: 'Your reputation score improved to 82/100. Keep it up!',
+    timestamp: 'Yesterday',
+    isRead: true,
+  },
+  {
+    id: '5',
+    type: 'security',
+    title: 'Terms Updated',
+    body: "We've updated our privacy policy. Tap to review the changes.",
+    timestamp: '3 days ago',
     isRead: false
   },
 ];
 
+// ─── Hook ─────────────────────────────────────────────────────────────────────
 export interface UseNotificationsReturn {
   notifications: Notification[];
   unreadCount: number;
   isLoading: boolean;
   error: string | null;
+  refresh: () => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   deleteNotification: (id: string) => void;
-  refresh: () => void;
 }
 
-export const useNotifications = () => {
+export const useNotifications = (): UseNotificationsReturn => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +110,12 @@ export const useNotifications = () => {
   }, []);
 
   const deleteNotification = useCallback((id: string) => {
+    let previous: Notification[] = [];
+    setNotifications(prev => {
+      previous = prev;
+      return prev.filter(n => n.id!== id);
+    });
+    // local-only until API supports delete
     setNotifications(prev => prev.filter(n => n.id!== id));
   }, []);
 
@@ -94,9 +126,9 @@ export const useNotifications = () => {
     unreadCount,
     isLoading,
     error,
+    refresh: fetchNotifications,
     markAsRead,
     markAllAsRead,
     deleteNotification,
-    refresh: fetchNotifications,
   };
 };
