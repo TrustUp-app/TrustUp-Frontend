@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import type { Notification } from '../../types/Notification';
 import { notificationsService } from '../../services/notifications.service';
 import { isApiConfigured } from '../../lib/api';
@@ -26,6 +26,7 @@ export const useNotifications = (): UseNotificationsReturn => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const snapshotRef = useRef<Notification[]>([]);
 
   const fetchNotifications = useCallback(async () => {
     setIsLoading(true);
@@ -49,28 +50,24 @@ export const useNotifications = (): UseNotificationsReturn => {
   }, [fetchNotifications]);
 
   const markAsRead = useCallback((id: string) => {
-    let previous: Notification[] = [];
-    setNotifications(prev => {
-      previous = prev;
-      return prev.map(n => (n.id === id? {...n, isRead: true } : n));
-    });
+    snapshotRef.current = notifications;
+    setNotifications(prev => prev.map(n => (n.id === id? {...n, isRead: true } : n)));
+    if (!isApiConfigured()) return;
     notificationsService.markAsRead(id).catch(() => {
-      setNotifications(previous);
+      setNotifications(snapshotRef.current);
       setError('Failed to mark as read');
     });
-  }, []);
+  }, [notifications]);
 
   const markAllAsRead = useCallback(() => {
-    let previous: Notification[] = [];
-    setNotifications(prev => {
-      previous = prev;
-      return prev.map(n => ({...n, isRead: true }));
-    });
+    snapshotRef.current = notifications;
+    setNotifications(prev => prev.map(n => ({...n, isRead: true })));
+    if (!isApiConfigured()) return;
     notificationsService.markAllAsRead().catch(() => {
-      setNotifications(previous);
+      setNotifications(snapshotRef.current);
       setError('Failed to mark all as read');
     });
-  }, []);
+  }, [notifications]);
 
   const deleteNotification = useCallback((id: string) => {
     setNotifications(prev => prev.filter(n => n.id!== id));
