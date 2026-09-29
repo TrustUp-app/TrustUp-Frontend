@@ -10,6 +10,7 @@ import {
 import { formatLoanAmount, getDueDateLabel } from '../../../hooks/loans/use-loans';
 import { repayLoan } from '../../../services/loans.service';
 import { ApiError } from '../../../lib/api';
+import { useProfile } from '../../../hooks/profile/use-profile';
 import { PayConfirmationSheet } from './PayConfirmationSheet';
 // Centralized color palette shared with Tailwind
 const colors = require('../../../theme/colors.json');
@@ -41,6 +42,7 @@ const PayScreen = ({
     error,
     refresh,
   } = usePayScreen();
+  const { profile } = useProfile();
 
   const [isPaySheetOpen, setIsPaySheetOpen] = useState(false);
   const [payState, setPayState] = useState<PayState>('idle');
@@ -331,6 +333,7 @@ const PayScreen = ({
         <PayConfirmationSheet
           visible={isPaySheetOpen}
           amount={nextPayment.amount}
+          walletAddress={profile?.walletAddress ?? null}
           dueDate={nextPayment.dueDate}
           isProcessing={payState === 'processing'}
           isFailed={payState === 'failed'}
