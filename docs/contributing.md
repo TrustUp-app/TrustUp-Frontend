@@ -157,7 +157,8 @@ npm run web
 
 ### Project Structure
 
-- `App.tsx` - Application entry point
+- `app/_layout.tsx` - Expo Router root layout (entry via `expo-router/entry`)
+- `app/` - Expo Router screens and route groups
 - `components/` - Reusable UI components
   - `pages/` - Screen components (e.g. `InvestScreen/`, `SignIn/`, `CreateAccountScreen/`)
   - `shared/` - Shared components (Layout, Navigation, etc.)

@@ -14,7 +14,7 @@ import {
   getRepaymentProgress,
   hasOverdueInstallments,
 } from '../../hooks/loans/use-loans';
-import { useLoanRepayment } from '../../hooks/loans/use-loan-repayment';
+import { useLoanRepayment, type PaymentStep } from '../../hooks/loans/use-loan-repayment';
 import type { Loan, LoanInstallment, LoanStatus } from '../../types/Loan';
 
 const colors = require('../../theme/colors.json');
@@ -116,16 +116,16 @@ const TimelineItem = ({ installment, isLast }: TimelineItemProps) => {
 // ─── Payment Processing Overlay ───────────────────────────────────────────────
 
 interface PaymentOverlayProps {
-  step: string;
+  step: PaymentStep;
   stepLabel: string;
   error: string | null;
   onDismiss: () => void;
 }
 
 const PaymentOverlay = ({ step, stepLabel, error, onDismiss }: PaymentOverlayProps) => {
-  const isSuccess = step === 'success';
+  const isReadyToSign = step === 'readyToSign';
   const isFailed = step === 'failed';
-  const showDismiss = isSuccess || isFailed;
+  const showDismiss = isReadyToSign || isFailed;
 
   return (
     <View className="absolute inset-0 z-50 items-center justify-center" style={styles.overlayBg}>
@@ -133,7 +133,7 @@ const PaymentOverlay = ({ step, stepLabel, error, onDismiss }: PaymentOverlayPro
         className="mx-8 w-full max-w-sm items-center rounded-3xl bg-white p-8"
         style={styles.card}>
         {/* Status icon */}
-        {isSuccess ? (
+        {isReadyToSign ? (
           <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-successSoft">
             <Ionicons name="checkmark-circle" size={36} color={colors.successDeep} />
           </View>
@@ -148,7 +148,7 @@ const PaymentOverlay = ({ step, stepLabel, error, onDismiss }: PaymentOverlayPro
         )}
 
         <Text className="mb-2 text-center text-lg font-bold text-textStrong">
-          {isSuccess ? 'Payment Successful!' : isFailed ? 'Payment Failed' : 'Processing Payment'}
+          {isReadyToSign ? 'Ready to Sign' : isFailed ? 'Payment Failed' : 'Preparing Payment'}
         </Text>
 
         <Text className="mb-6 text-center text-sm text-textSecondary">{error || stepLabel}</Text>
@@ -156,8 +156,8 @@ const PaymentOverlay = ({ step, stepLabel, error, onDismiss }: PaymentOverlayPro
         {/* Step indicators */}
         {!showDismiss && (
           <View className="mb-4 flex-row items-center gap-2">
-            {(['requesting', 'signing', 'submitting'] as const).map((s) => {
-              const steps = ['requesting', 'signing', 'submitting'];
+            {(['requesting'] as const).map((s) => {
+              const steps = ['requesting'];
               const currentIdx = steps.indexOf(step);
               const thisIdx = steps.indexOf(s);
               const isDone = thisIdx < currentIdx;
@@ -175,9 +175,7 @@ const PaymentOverlay = ({ step, stepLabel, error, onDismiss }: PaymentOverlayPro
                           : colors.border,
                     }}
                   />
-                  <Text className="mt-1 text-[10px] text-textMuted">
-                    {s === 'requesting' ? 'Prepare' : s === 'signing' ? 'Sign' : 'Submit'}
-                  </Text>
+                  <Text className="mt-1 text-[10px] text-textMuted">Prepare</Text>
                 </View>
               );
             })}
@@ -189,9 +187,9 @@ const PaymentOverlay = ({ step, stepLabel, error, onDismiss }: PaymentOverlayPro
             onPress={onDismiss}
             activeOpacity={0.8}
             className="items-center rounded-xl px-8 py-3"
-            style={{ backgroundColor: isSuccess ? colors.primary : colors.error }}>
+            style={{ backgroundColor: isReadyToSign ? colors.primary : colors.error }}>
             <Text className="text-sm font-semibold text-white">
-              {isSuccess ? 'Done' : 'Try Again'}
+              {isReadyToSign ? 'Close' : 'Try Again'}
             </Text>
           </TouchableOpacity>
         )}
@@ -367,7 +365,7 @@ const LoanDetailScreen: React.FC<LoanDetailScreenProps> = ({ loan, onBack }) => 
           <TouchableOpacity
             activeOpacity={0.8}
             className="items-center rounded-xl bg-cta py-4"
-            onPress={() => initiatePayment(loan.id)}
+            onPress={() => initiatePayment(loan.id, loan.nextPaymentAmount!)}
             disabled={isProcessing}
             accessibilityLabel="Make a payment"
             accessibilityRole="button">

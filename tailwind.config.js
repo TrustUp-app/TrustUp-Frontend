@@ -1,15 +1,12 @@
-import { transform } from '@babel/core';
-import { opacity } from 'react-native-reanimated/lib/typescript/Colors';
-import keyframes from 'react-native-reanimated/lib/typescript/css/stylesheet/keyframes';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-
 /** @type {import('tailwindcss').Config} */
 const appColors = require('./theme/colors.json');
 
 module.exports = {
-  content: ['./App.{js,ts,tsx}', './components/**/*.{js,ts,tsx}'],
+  content: [
+    './App.{js,ts,tsx}',
+    './app/**/*.{js,jsx,ts,tsx}',
+    './components/**/*.{js,ts,tsx}',
+  ],
   darkMode: 'class',
   presets: [require('nativewind/preset')],
   theme: {

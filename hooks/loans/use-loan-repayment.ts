@@ -1,95 +1,118 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ApiError } from '../../lib/api';
+import { repayLoan } from '../../services/loans.service';
 
-/**
- * Steps in the repayment transaction flow.
- * 1. idle → nothing happening
- * 2. requesting → calling POST /loans/:loanId/pay to get unsigned XDR
- * 3. signing → waiting for wallet to sign the XDR
- * 4. submitting → calling POST /transactions/submit with signed XDR
- * 5. success → payment completed
- * 6. failed → an error occurred at any step
- */
-export type PaymentStep = 'idle' | 'requesting' | 'signing' | 'submitting' | 'success' | 'failed';
+/** States for requesting an unsigned repayment transaction. */
+export type PaymentStep = 'idle' | 'requesting' | 'readyToSign' | 'failed';
 
-/**
- * Human-readable label for each payment step, shown in the UI.
- */
 export const PAYMENT_STEP_LABELS: Record<PaymentStep, string> = {
   idle: '',
-  requesting: 'Preparing transaction…',
-  signing: 'Waiting for wallet signature…',
-  submitting: 'Submitting to network…',
-  success: 'Payment successful!',
+  requesting: 'Preparing transaction...',
+  readyToSign: 'Transaction ready for wallet signature.',
   failed: 'Payment failed',
 };
 
-/**
- * Return type for the useLoanRepayment hook.
- */
 export interface UseLoanRepaymentReturn {
   isProcessing: boolean;
   paymentStep: PaymentStep;
   stepLabel: string;
   error: string | null;
-  initiatePayment: (loanId: string) => void;
+  initiatePayment: (loanId: string, amount: number) => Promise<void>;
   reset: () => void;
 }
 
 /**
- * Custom hook for the 3-step loan repayment flow:
- * 1. Request unsigned XDR from API
- * 2. Sign with connected wallet
- * 3. Submit signed transaction
- *
- * @todo Replace each setTimeout block with real API calls:
- *   Step 1 – POST /loans/{loanId}/pay          → receive unsigned XDR
- *   Step 2 – Invoke connected wallet to sign XDR
- *   Step 3 – POST /transactions/submit          → submit signed XDR
- *
- * Until the endpoints are available this function uses simulated delays so
- * that the UI flow can be developed and reviewed. It MUST NOT ship to
- * production in this state.
+ * Requests an unsigned repayment XDR from the API. Wallet signing and network
+ * submission are intentionally out of scope until wallet integration exists,
+ * so a successful response is never presented as a settled payment.
  */
 export const useLoanRepayment = (): UseLoanRepaymentReturn => {
   const [paymentStep, setPaymentStep] = useState<PaymentStep>('idle');
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
+  const activeRequestRef = useRef(0);
+  const controllerRef = useRef<AbortController | null>(null);
 
-  const isProcessing =
-    paymentStep !== 'idle' && paymentStep !== 'success' && paymentStep !== 'failed';
-
+  const isProcessing = paymentStep === 'requesting';
   const stepLabel = PAYMENT_STEP_LABELS[paymentStep];
 
-  /**
-   * Kicks off the full repayment pipeline for the given loan.
-   */
-  const initiatePayment = useCallback((loanId: string) => {
-    if (!loanId || loanId.trim() === '') {
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+      activeRequestRef.current += 1;
+      controllerRef.current?.abort();
+    };
+  }, []);
+
+  const initiatePayment = useCallback(async (loanId: string, amount: number): Promise<void> => {
+    if (!isMountedRef.current) return;
+
+    // Invalidate the previous attempt even if the new input is invalid.
+    activeRequestRef.current += 1;
+    controllerRef.current?.abort();
+    controllerRef.current = null;
+
+    const normalizedLoanId = loanId.trim();
+    if (!normalizedLoanId) {
       setError('Invalid loan ID');
       setPaymentStep('failed');
       return;
     }
 
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setError('Invalid payment amount');
+      setPaymentStep('failed');
+      return;
+    }
+
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    const requestId = activeRequestRef.current;
+
     setError(null);
     setPaymentStep('requesting');
 
-    // TODO: Step 1 – POST /loans/${loanId}/pay to receive unsigned XDR
-    setTimeout(() => {
-      // TODO: Step 2 – Pass unsignedXdr to the connected wallet for signing
-      setPaymentStep('signing');
-      setTimeout(() => {
-        // TODO: Step 3 – POST /transactions/submit with the signed XDR
-        setPaymentStep('submitting');
-        setTimeout(() => {
-          setPaymentStep('success');
-        }, 1200);
-      }, 1500);
-    }, 1000);
+    try {
+      const repayment = await repayLoan(normalizedLoanId, amount, controller.signal);
+      if (
+        controller.signal.aborted ||
+        !isMountedRef.current ||
+        activeRequestRef.current !== requestId
+      ) {
+        return;
+      }
+
+      if (!repayment.unsignedXdr) {
+        throw new ApiError(502, 'The repayment service did not return a transaction to sign.');
+      }
+
+      setPaymentStep('readyToSign');
+    } catch (err) {
+      if (
+        controller.signal.aborted ||
+        !isMountedRef.current ||
+        activeRequestRef.current !== requestId
+      ) {
+        return;
+      }
+
+      setError(
+        err instanceof ApiError ? err.message : 'Unable to prepare payment. Please try again.'
+      );
+      setPaymentStep('failed');
+    } finally {
+      if (controllerRef.current === controller) {
+        controllerRef.current = null;
+      }
+    }
   }, []);
 
-  /**
-   * Resets the hook back to idle state so the user can retry or dismiss.
-   */
   const reset = useCallback(() => {
+    activeRequestRef.current += 1;
+    controllerRef.current?.abort();
+    controllerRef.current = null;
     setPaymentStep('idle');
     setError(null);
   }, []);

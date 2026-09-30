@@ -76,7 +76,8 @@ TrustUp-Frontend/
 ├── types/                      # TypeScript type definitions
 ├── node_modules/              # Dependencies
 ├── .gitignore                 # Git ignore rules
-├── App.tsx                    # App entry point
+├── app/                       # Expo Router routes (entry via expo-router/entry)
+│   └── _layout.tsx            # Root layout
 ├── app.json                   # Expo app configuration
 ├── babel.config.js            # Babel configuration
 ├── cesconfig.json             # CES configuration
