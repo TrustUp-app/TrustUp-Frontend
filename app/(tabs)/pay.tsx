@@ -1,13 +1,9 @@
-import { useCallback } from 'react';
-import { useRouter } from 'expo-router';
-import { MainLayout } from '../../components/shared/MainLayout';
+import { Redirect } from 'expo-router';
 
+/**
+ * Pay Expo tab is hidden (`href: null`). MainLayout (Pay/Invest) lives on the
+ * Home tab only — redirect any direct /pay navigation there to avoid a second mount.
+ */
 export default function PayTab() {
-  const router = useRouter();
-
-  const handleSignOut = useCallback(async () => {
-    router.replace('/sign-in');
-  }, [router]);
-
-  return <MainLayout onSignOut={handleSignOut} />;
+  return <Redirect href="/" />;
 }
