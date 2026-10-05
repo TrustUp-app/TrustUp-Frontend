@@ -7,14 +7,6 @@ import { formatLoanAmount } from '../../../hooks/loans/use-loans';
 const colors = require('../../../theme/colors.json');
 
 /**
- * Wallet address the payment is drawn from.
- *
- * @todo Source the connected wallet address from the wallet context once it
- *   exists. Hardcoded here so the confirmation UI can be reviewed.
- */
-const MOCK_WALLET_ADDRESS = 'GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H';
-
-/**
  * Truncates a wallet address for display, e.g. "GBRPYH…7OX2H".
  */
 export const truncateAddress = (address: string, lead = 6, tail = 4): string => {
@@ -64,6 +56,8 @@ interface PayConfirmationSheetProps {
   visible: boolean;
   /** Next installment amount in USD. */
   amount: number;
+  /** Authenticated user's Stellar wallet address, if available. */
+  walletAddress: string | null;
   /** Next installment due date (ISO), or null if unknown. */
   dueDate: string | null;
   /** True while the payment is in flight (blocks dismissal + double submit). */
@@ -89,6 +83,7 @@ interface PayConfirmationSheetProps {
 export const PayConfirmationSheet = ({
   visible,
   amount,
+  walletAddress,
   dueDate,
   isProcessing,
   isFailed,
@@ -98,6 +93,8 @@ export const PayConfirmationSheet = ({
   onClose,
 }: PayConfirmationSheetProps) => {
   const insets = useSafeAreaInsets();
+  const displayWalletAddress = walletAddress?.trim() ?? '';
+  const hasWalletAddress = displayWalletAddress.length > 0;
 
   const handleClose = () => {
     if (isProcessing) return; // block dismissal mid-payment
@@ -137,7 +134,7 @@ export const PayConfirmationSheet = ({
             <DetailRow
               icon="wallet-outline"
               label="Pay from"
-              value={truncateAddress(MOCK_WALLET_ADDRESS)}
+              value={hasWalletAddress ? truncateAddress(displayWalletAddress) : 'Unavailable'}
             />
           </View>
 
@@ -155,11 +152,14 @@ export const PayConfirmationSheet = ({
           <TouchableOpacity
             onPress={onConfirm}
             activeOpacity={0.8}
-            disabled={isProcessing}
+            disabled={isProcessing || !hasWalletAddress}
             className="mb-3 flex-row items-center justify-center gap-2 rounded-xl bg-cta py-4"
-            style={{ opacity: isProcessing ? 0.7 : 1 }}
+            style={{ opacity: isProcessing || !hasWalletAddress ? 0.7 : 1 }}
             accessibilityRole="button"
-            accessibilityState={{ disabled: isProcessing, busy: isProcessing }}
+            accessibilityState={{
+              disabled: isProcessing || !hasWalletAddress,
+              busy: isProcessing,
+            }}
             accessibilityLabel="Confirm and pay">
             {isProcessing ? (
               <>

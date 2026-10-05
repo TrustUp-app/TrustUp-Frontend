@@ -36,6 +36,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="pay"
           options={{
+            href: null,
             title: 'Pay',
             tabBarIcon: ({ color, size }) => <Ionicons name="card" size={size} color={color} />,
           }}
