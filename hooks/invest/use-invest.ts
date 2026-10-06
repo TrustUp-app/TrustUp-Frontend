@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { ScrollView } from 'react-native';
 
+import { investService } from '../../services/invest.service';
+
 /**
  * Return type for the useInvest hook
  */
@@ -10,7 +12,11 @@ export interface UseInvestReturn {
   formatCurrency: (value: string) => string;
   handleAmountChange: (text: string) => void;
   isDepositValid: () => boolean;
-  handleDeposit: () => void;
+  handleDeposit: () => Promise<void>;
+  isLoading: boolean;
+  error: string | null;
+  successMessage: string | null;
+  clearFeedback: () => void;
 }
 
 /**
@@ -46,10 +52,7 @@ export const formatCurrency = (value: string): string => {
   const [integerPart, decimalPart] = filtered.split('.');
 
   // Add thousand separators to the integer portion
-  const formattedInteger = (integerPart || '0').replace(
-    /\B(?=(\d{3})+(?!\d))/g,
-    ',',
-  );
+  const formattedInteger = (integerPart || '0').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
   // Preserve the decimal point while typing and limit to 2 decimal places
   if (decimalPart !== undefined) {
@@ -86,6 +89,9 @@ export const validateDepositAmount = (depositAmount: string): boolean => {
  */
 export const useInvest = (): UseInvestReturn => {
   const [depositAmount, setDepositAmount] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Handle amount input changes
@@ -124,14 +130,42 @@ export const useInvest = (): UseInvestReturn => {
     setDepositAmount(filtered);
   }, []);
 
+  // Clear any previous success/error feedback (e.g. when the amount changes)
+  const clearFeedback = useCallback((): void => {
+    setError(null);
+    setSuccessMessage(null);
+  }, []);
+
   // Validate deposit amount using derived pure function
   const isDepositValid = useCallback((): boolean => {
     return validateDepositAmount(depositAmount);
   }, [depositAmount]);
 
-  // Handle deposit button press
-  const handleDeposit = useCallback((): void => {
-    console.log(`Deposit initiated: $${formatCurrency(depositAmount)}`);
+  // Handle deposit button press: POST the amount to the real API endpoint
+  const handleDeposit = useCallback(async (): Promise<void> => {
+    setError(null);
+    setSuccessMessage(null);
+
+    if (!validateDepositAmount(depositAmount)) {
+      setError('Minimum deposit is $10.00');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // The API builds the (unsigned) deposit transaction; on-chain signing is a
+      // documented follow-up, so success here means the request was accepted.
+      const response = await investService.deposit({
+        amount: parseFloat(depositAmount),
+      });
+      setSuccessMessage(response.description || 'Deposit transaction prepared.');
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Unable to start the deposit. Please try again.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }, [depositAmount]);
 
   return {
@@ -141,5 +175,9 @@ export const useInvest = (): UseInvestReturn => {
     handleAmountChange,
     isDepositValid,
     handleDeposit,
+    isLoading,
+    error,
+    successMessage,
+    clearFeedback,
   };
 };

@@ -21,6 +21,10 @@ const InvestScreen = () => {
     handleAmountChange,
     isDepositValid,
     handleDeposit,
+    isLoading,
+    error,
+    successMessage,
+    clearFeedback,
   } = useInvest();
 
   return (
@@ -129,7 +133,10 @@ const InvestScreen = () => {
                   className="mb-2 w-full text-5xl font-bold text-textStrong"
                   keyboardType="numeric"
                   value={depositAmount ? `$${formatCurrency(depositAmount)}` : ''}
-                  onChangeText={handleAmountChange}
+                  onChangeText={(text) => {
+                    clearFeedback();
+                    handleAmountChange(text);
+                  }}
                   placeholder="$0.00"
                   placeholderTextColor={colors.placeholderAlt}
                   numberOfLines={1}
@@ -141,19 +148,44 @@ const InvestScreen = () => {
 
               {/* Deposit Button */}
               <TouchableOpacity
-                className={`items-center rounded-2xl py-4 ${isDepositValid() ? 'bg-ctaStrong' : 'bg-cta'
-                  }`}
+                className={`items-center rounded-2xl py-4 ${
+                  isDepositValid() && !isLoading ? 'bg-ctaStrong' : 'bg-cta'
+                }`}
                 onPress={handleDeposit}
-                disabled={!isDepositValid()}
+                disabled={!isDepositValid() || isLoading}
                 accessibilityLabel="Deposit funds button"
-                accessibilityState={{ disabled: !isDepositValid() }}
-                accessibilityHint={!isDepositValid() ? 'Minimum $10 required' : undefined}>
+                accessibilityState={{ disabled: !isDepositValid() || isLoading }}
+                accessibilityHint={
+                  isLoading
+                    ? 'Deposit in progress'
+                    : !isDepositValid()
+                      ? 'Minimum $10 required'
+                      : undefined
+                }>
                 <Text
-                  className={`text-base font-semibold ${isDepositValid() ? 'text-white' : 'text-gray-200'
-                    }`}>
-                  Deposit funds
+                  className={`text-base font-semibold ${
+                    isDepositValid() && !isLoading ? 'text-white' : 'text-gray-200'
+                  }`}>
+                  {isLoading ? 'Processing…' : 'Deposit funds'}
                 </Text>
               </TouchableOpacity>
+
+              {/* Deposit feedback (loading is shown on the button) */}
+              {error ? (
+                <Text
+                  className="mt-3 text-sm text-error"
+                  accessibilityRole="alert"
+                  accessibilityLabel="Deposit error">
+                  {error}
+                </Text>
+              ) : successMessage ? (
+                <Text
+                  className="mt-3 text-sm text-success"
+                  accessibilityRole="text"
+                  accessibilityLabel="Deposit confirmation">
+                  {successMessage}
+                </Text>
+              ) : null}
             </View>
 
             {/* Info Box */}
