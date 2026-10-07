@@ -139,3 +139,57 @@ export interface MerchantDetail {
   createdAt: string;
   updatedAt?: string;
 }
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+/**
+ * Notification type values as returned by the backend.
+ * The API uses snake_case strings like "loan_reminder".
+ */
+export type ApiNotificationType =
+  | 'loan_reminder'
+  | 'payment_due'
+  | 'payment_received'
+  | 'credit_update'
+  | 'merchant_update'
+  | 'reputation_update'
+  | 'security'
+  | string; // allow future types without a type error
+
+/**
+ * One notification item as returned by `GET /notifications`.
+ * Field names match the backend DTO exactly.
+ */
+export interface ApiNotification {
+  id: string;
+  /** Snake_case type string (e.g. "loan_reminder"). */
+  type: ApiNotificationType;
+  title: string;
+  /** Body text — the backend field is named `message`, not `body`. */
+  message: string;
+  isRead: boolean;
+  /** ISO-8601 timestamp. */
+  createdAt: string;
+  /** Optional metadata (loanId, amount, etc). */
+  data?: Record<string, unknown>;
+}
+
+/** `GET /notifications` response — returned directly (no success envelope). */
+export interface ApiNotificationsResponse {
+  notifications: ApiNotification[];
+  total: number;
+  unreadCount: number;
+  limit: number;
+  offset: number;
+}
+
+/** `PATCH /notifications/:id/read` response. */
+export interface MarkReadResponse {
+  success: boolean;
+}
+
+/** `PATCH /notifications/read-all` response. */
+export interface MarkAllReadResponse {
+  success: boolean;
+  updatedCount: number;
+}
