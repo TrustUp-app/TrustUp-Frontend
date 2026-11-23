@@ -89,9 +89,7 @@ const PayScreen = ({
     } catch (err) {
       if (!isMountedRef.current) return;
       setPayState('failed');
-      setPayError(
-        err instanceof ApiError ? err.message : 'Payment failed. Please try again.'
-      );
+      setPayError(err instanceof ApiError ? err.message : 'Payment failed. Please try again.');
     }
   }, [activeLoan, nextPayment, onToast, refresh]);
 
