@@ -2,64 +2,12 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Header } from '../../components/shared/Header';
-import { useProfile, getInitials } from '../../hooks/profile/use-profile';
+import { Header } from '@/components/shared/Header';
+import { useProfile, getInitials } from '@/hooks/profile/use-profile';
+import { useNotifications } from '@/hooks/notifications/use-notifications';
+import type { NotificationType } from '@/types/Notification';
 
-const colors = require('../../theme/colors.json');
-
-type NotificationType = 'payment' | 'credit' | 'merchant' | 'reputation' | 'security';
-
-interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  body: string;
-  timestamp: string;
-  isRead: boolean;
-}
-
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: '1',
-    type: 'payment',
-    title: 'Payment Due Soon',
-    body: "Your $50.00 payment is due in 3 days. Don't miss it!",
-    timestamp: '2 min ago',
-    isRead: false,
-  },
-  {
-    id: '2',
-    type: 'credit',
-    title: 'Credit Increased',
-    body: 'Great news! Your available credit increased to $320.00.',
-    timestamp: '1 hour ago',
-    isRead: false,
-  },
-  {
-    id: '3',
-    type: 'merchant',
-    title: 'New Merchant Available',
-    body: 'TechStore has joined TrustUp. Shop with BNPL now.',
-    timestamp: '3 hours ago',
-    isRead: false,
-  },
-  {
-    id: '4',
-    type: 'reputation',
-    title: 'Reputation Updated',
-    body: 'Your reputation score improved to 82/100. Keep it up!',
-    timestamp: 'Yesterday',
-    isRead: true,
-  },
-  {
-    id: '5',
-    type: 'security',
-    title: 'Terms Updated',
-    body: "We've updated our privacy policy. Tap to review the changes.",
-    timestamp: '3 days ago',
-    isRead: true,
-  },
-];
+const colors = require('@/theme/colors.json');
 
 const getIconConfig = (type: NotificationType) => {
   switch (type) {
@@ -85,6 +33,15 @@ const getIconConfig = (type: NotificationType) => {
 export default function NotificationsTab() {
   const router = useRouter();
   const { profile } = useProfile();
+  const {
+    notifications,
+    isLoading,
+    error,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    refresh,
+  } = useNotifications();
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
@@ -99,73 +56,111 @@ export default function NotificationsTab() {
         />
 
         <View className="flex-1">
-          {/* Header */}
+          {/* Page header */}
           <View className="flex-row items-center justify-between px-6 pb-4 pt-6">
             <Text className="text-2xl font-bold text-primary">Notifications</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={markAllAsRead}>
               <Text className="text-sm font-bold text-cta">Mark all read</Text>
             </TouchableOpacity>
           </View>
 
-          {/* List */}
-          <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-            {MOCK_NOTIFICATIONS.length > 0 ? (
-              MOCK_NOTIFICATIONS.map((item) => {
-                const iconConfig = getIconConfig(item.type);
-                return (
-                  <View
-                    key={item.id}
-                    className="flex-row items-start px-4 py-4"
-                    style={{
-                      backgroundColor: !item.isRead ? '#FFFAF8' : 'white',
-                    }}>
-                    {/* Unread dot */}
-                    <View className="w-5 items-center pt-3">
-                      {!item.isRead && <View className="h-2 w-2 rounded-full bg-cta" />}
-                      {item.isRead && item.type !== 'security' && item.type !== 'reputation' && (
-                        <View className="h-2 w-2 rounded-full bg-gray-300" />
-                      )}
-                    </View>
-
-                    {/* Icon Container */}
-                    <View
-                      className="h-10 w-10 items-center justify-center rounded-full"
-                      style={{ backgroundColor: iconConfig.bg }}>
-                      <Ionicons name={iconConfig.name} size={18} color={iconConfig.iconColor} />
-                    </View>
-
-                    {/* Content */}
-                    <View className="flex-1 px-3">
-                      <Text className="text-[15px] font-bold text-textStrong">{item.title}</Text>
-                      <Text className="mt-0.5 text-[13px] leading-4 text-textSecondary">
-                        {item.body}
-                      </Text>
-                      <Text className="mt-1.5 text-[12px] text-textSubtle">{item.timestamp}</Text>
-                    </View>
-
-                    {/* Actions */}
-                    <View className="items-center gap-4 pt-1">
-                      {!item.isRead && (
-                        <TouchableOpacity>
-                          <Ionicons name="checkmark" size={20} color={colors.success} />
-                        </TouchableOpacity>
-                      )}
-                      <TouchableOpacity>
-                        <Ionicons name="trash-outline" size={18} color={colors.error} />
-                      </TouchableOpacity>
-                    </View>
+          {/* Loading skeleton */}
+          {isLoading && (
+            <View>
+              {[0, 1, 2, 3].map((key) => (
+                <View key={key} className="flex-row items-center px-4 py-4">
+                  <View className="w-5" />
+                  <View className="h-10 w-10 rounded-full bg-gray-100" />
+                  <View className="flex-1 px-3">
+                    <View className="h-3 w-2/3 rounded bg-gray-100" />
+                    <View className="mt-2 h-3 w-full rounded bg-gray-100" />
                   </View>
-                );
-              })
-            ) : (
-              <View className="flex-1 items-center justify-center pt-32">
-                <Ionicons name="notifications-off-outline" size={48} color={colors.textSubtle} />
-                <Text className="mt-4 text-base font-medium text-textSecondary">
-                  All caught up!
-                </Text>
-              </View>
-            )}
-          </ScrollView>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Error state */}
+          {!isLoading && error !== null && (
+            <View className="flex-1 items-center justify-center pt-32">
+              <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+              <Text className="mt-4 text-base font-medium text-textSecondary">{error}</Text>
+              <TouchableOpacity
+                onPress={refresh}
+                className="mt-4 flex-row items-center gap-2 rounded-full bg-cta px-5 py-2.5">
+                <Ionicons name="refresh-outline" size={16} color="#fff" />
+                <Text className="text-sm font-bold text-white">Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Notification list */}
+          {!isLoading && error === null && (
+            <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+              {notifications.length > 0 ? (
+                notifications.map((item) => {
+                  const iconConfig = getIconConfig(item.type);
+                  return (
+                    <View
+                      key={item.id}
+                      className="flex-row items-start px-4 py-4"
+                      style={{
+                        backgroundColor: !item.isRead ? '#FFFAF8' : 'white',
+                      }}>
+                      {/* Unread dot */}
+                      <View className="w-5 items-center pt-3">
+                        {!item.isRead && <View className="h-2 w-2 rounded-full bg-cta" />}
+                        {item.isRead && item.type !== 'security' && item.type !== 'reputation' && (
+                          <View className="h-2 w-2 rounded-full bg-gray-300" />
+                        )}
+                      </View>
+
+                      {/* Icon */}
+                      <View
+                        className="h-10 w-10 items-center justify-center rounded-full"
+                        style={{ backgroundColor: iconConfig.bg }}>
+                        <Ionicons name={iconConfig.name} size={18} color={iconConfig.iconColor} />
+                      </View>
+
+                      {/* Content */}
+                      <View className="flex-1 px-3">
+                        <Text className="text-[15px] font-bold text-textStrong">{item.title}</Text>
+                        <Text className="mt-0.5 text-[13px] leading-4 text-textSecondary">
+                          {item.body}
+                        </Text>
+                        <Text className="mt-1.5 text-[12px] text-textSubtle">
+                          {item.timestamp}
+                        </Text>
+                      </View>
+
+                      {/* Actions */}
+                      <View className="items-center gap-4 pt-1">
+                        {!item.isRead && (
+                          <TouchableOpacity onPress={() => markAsRead(item.id)}>
+                            <Ionicons name="checkmark" size={20} color={colors.success} />
+                          </TouchableOpacity>
+                        )}
+                        <TouchableOpacity onPress={() => deleteNotification(item.id)}>
+                          <Ionicons name="trash-outline" size={18} color={colors.error} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })
+              ) : (
+                <View className="flex-1 items-center justify-center pt-32">
+                  <Ionicons
+                    name="notifications-off-outline"
+                    size={48}
+                    color={colors.textSubtle}
+                  />
+                  <Text className="mt-4 text-base font-medium text-textSecondary">
+                    All caught up!
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+          )}
         </View>
       </View>
     </SafeAreaView>
